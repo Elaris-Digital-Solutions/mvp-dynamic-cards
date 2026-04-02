@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
-import { getUser } from './getUser'
+import { getCurrentUser } from './getCurrentUser'
 import { Database } from '@/types/database'
 
-type Profile = Database['public']['Tables']['profiles']['Row']
+export type Profile = Database['public']['Tables']['profiles']['Row']
 
-export async function getProfile(): Promise<Profile | null> {
-  const user = await getUser()
+export async function getCurrentProfile(): Promise<Profile | null> {
+  const user = await getCurrentUser()
   if (!user) return null
 
   const supabase = await createClient()
@@ -19,7 +19,7 @@ export async function getProfile(): Promise<Profile | null> {
     if (error) throw error
     return data as Profile
   } catch (error) {
-    console.error("Error fetching profile:", error)
+    console.error("Error fetching current profile:", error)
     return null
   }
 }

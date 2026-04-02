@@ -49,14 +49,20 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && isAdminRoute) {
+  if (user && (isDashboardRoute || isAdminRoute)) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, is_active')
       .eq('id', user.id)
       .single()
 
-    if ((profile as any)?.role !== 'admin') {
+    if (!(profile as any)?.is_active) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/inactive'
+      return NextResponse.redirect(url)
+    }
+
+    if (isAdminRoute && (profile as any)?.role !== 'admin') {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
