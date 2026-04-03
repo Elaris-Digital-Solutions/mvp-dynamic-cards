@@ -1,7 +1,7 @@
-import { getProfile } from '@/lib/auth/getProfile'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 export default async function AdminPage() {
-  const profile = await getProfile()
+  const { profile } = await requireAdmin()
 
   return (
     <div>

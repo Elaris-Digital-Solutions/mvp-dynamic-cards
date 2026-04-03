@@ -14,11 +14,26 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError(error.message)
     } else {
-      router.push('/dashboard')
+      if (authData.user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authData.user.id)
+          .single()
+        const profile = data as any;
+
+        if (profile?.role === 'admin') {
+          router.push('/admin')
+        } else {
+          router.push('/dashboard')
+        }
+      } else {
+        router.push('/dashboard')
+      }
       router.refresh()
     }
   }
