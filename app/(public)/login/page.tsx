@@ -1,58 +1,49 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { LoginForm } from '@/frontend/components/auth/login-form'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setError(error.message)
-    } else {
-      if (authData.user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authData.user.id)
-          .single()
-        const profile = data as any;
+  const handleLogin = async (email: string, password: string) => {
+    const supabase = createClient()
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-        if (profile?.role === 'admin') {
-          router.push('/admin')
-        } else {
-          router.push('/dashboard')
-        }
+    if (authError) {
+      if (authError.message === 'Invalid login credentials') {
+        throw new Error('Credenciales inválidas. Por favor intenta de nuevo.')
+      }
+      throw new Error(authError.message)
+    }
+
+    if (authData.user) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single()
+        
+      const profile = data as { role: 'admin' | 'user' } | null
+
+      router.refresh()
+      if (profile?.role === 'admin') {
+        router.push('/admin')
       } else {
         router.push('/dashboard')
       }
+    } else {
       router.refresh()
+      router.push('/dashboard')
     }
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <form onSubmit={handleLogin} className="w-full max-w-sm rounded-lg border p-6 shadow-sm">
-        <h2 className="mb-4 text-2xl font-bold">Log in</h2>
-        {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Email</label>
-          <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border p-2 rounded" />
-        </div>
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-1">Password</label>
-          <input required type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border p-2 rounded" />
-        </div>
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded font-medium">Log in</button>
-      </form>
-    </main>
+    <div className="flex min-h-screen items-center justify-center p-6 bg-background">
+      <div className="w-full">
+        <LoginForm onLogin={handleLogin} />
+      </div>
+    </div>
   )
 }

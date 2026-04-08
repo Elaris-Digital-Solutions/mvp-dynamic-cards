@@ -1,55 +1,45 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { SignupForm } from '@/frontend/components/auth/signup-form'
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    const { error } = await supabase.auth.signUp({ 
-      email, 
+  const handleSignup = async (name: string, email: string, password: string, username: string) => {
+    if (!username) {
+      throw new Error('El nombre de usuario es requerido para tu tarjeta.')
+    }
+
+    const supabase = createClient()
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
       password,
       options: {
-        data: { username, full_name: username }
+        data: {
+          username,
+          full_name: name
+        }
       }
     })
-    
-    if (error) {
-      setError(error.message)
-    } else {
-      router.push('/dashboard')
-      router.refresh()
+
+    if (signUpError) {
+      if (signUpError.message.includes('User already registered') || signUpError.message.includes('already exists')) {
+        throw new Error('Este email ya está en uso.')
+      }
+      throw new Error(signUpError.message)
     }
+
+    router.refresh()
+    router.push('/dashboard')
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <form onSubmit={handleRegister} className="w-full max-w-sm rounded-lg border p-6 shadow-sm">
-        <h2 className="mb-4 text-2xl font-bold">Register</h2>
-        {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Username (optional)</label>
-          <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="w-full border p-2 rounded" />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Email</label>
-          <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border p-2 rounded" />
-        </div>
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-1">Password</label>
-          <input required type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border p-2 rounded" />
-        </div>
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded font-medium">Register</button>
-      </form>
-    </main>
+    <div className="flex min-h-screen items-center justify-center p-6 bg-background">
+      <div className="w-full">
+        <SignupForm onSignup={handleSignup} />
+      </div>
+    </div>
   )
 }
