@@ -1,12 +1,36 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
-import TemplateOne from '@/components/templates/TemplateOne'
+import { LinktreeCard } from '@/frontend/components/card/linktree-card'
+import { dbProfileToUIProfile } from '@/lib/utils/adapters'
 
 interface ProfilePageProps {
   params: Promise<{
     username: string
   }>
+}
+
+export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
+  const { username } = await params
+  const supabase = await createClient()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, job_title, company, bio, avatar_url')
+    .eq('username', username)
+    .single()
+
+  if (!profile) return { title: 'Not Found' }
+
+  return {
+    title: profile.full_name || username,
+    description: [profile.job_title, profile.company, profile.bio].filter(Boolean).join(' · '),
+    openGraph: {
+      title: profile.full_name || username,
+      images: profile.avatar_url ? [{ url: profile.avatar_url }] : [],
+    },
+  }
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
@@ -20,6 +44,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .eq('username', username)
     .single()
 
+  // Ensure profile exists and is explicitly marked active by an Admin
   if (!profile || !profile.is_active) {
     notFound()
   }
@@ -45,11 +70,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     if (error) console.error("Non-blocking page view log failed:", error.message)
   }).catch(() => {})
 
-  // 4. Delegated Render
-  if (profile.template_id === 1) {
-    return <TemplateOne profile={profile} buttons={buttons || []} />
-  }
+  // 4. Adapt data for pure UI layer
+  // The adapter strips all DB-specific columns (role, is_active, etc.)
+  const uiProfile = dbProfileToUIProfile(profile, buttons || [])
 
-  // Fallback to TemplateOne for any unmapped templates
-  return <TemplateOne profile={profile} buttons={buttons || []} />
+  // 5. Production Render
+  return <LinktreeCard profile={uiProfile} />
 }
