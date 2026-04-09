@@ -1,23 +1,24 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import Link from 'next/link'
 import { Home } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Sidebar } from '@/components/shared/sidebar'
-import { DashboardBotonesSection } from '@/features/dashboard/sections/dashboard-botones-section'
-import { DashboardInicioSection } from '@/features/dashboard/sections/dashboard-inicio-section'
-import { DashboardPerfilSection } from '@/features/dashboard/sections/dashboard-perfil-section'
-import { DashboardPlantillaSection } from '@/features/dashboard/sections/dashboard-plantilla-section'
-import { MOCK_USER } from '@/lib/mock-data'
-import { TEMPLATES } from '@/lib/constants'
+import { Sidebar } from '@/frontend/components/shared/sidebar'
+import { DashboardBotonesSection } from '@/frontend/features/dashboard/sections/dashboard-botones-section'
+import { DashboardInicioSection } from '@/frontend/features/dashboard/sections/dashboard-inicio-section'
+import { DashboardPerfilSection } from '@/frontend/features/dashboard/sections/dashboard-perfil-section'
+import { DashboardPlantillaSection } from '@/frontend/features/dashboard/sections/dashboard-plantilla-section'
+import { TEMPLATES } from '@/frontend/lib/constants'
+import { useLogout } from '@/lib/auth/useLogout'
+import { updateProfile, updateTemplate } from '@/lib/actions/profile'
+import { createButton, updateButton, deleteButton } from '@/lib/actions/buttons'
+import type { UIUserProfile, UILinkItem } from '@/lib/utils/adapters'
 import type {
   DashboardSection,
   EditableLink,
   LinkIcon,
   ProfileFormState,
   SaveStatus,
-} from '@/types/ui.types'
+} from '@/frontend/types/ui.types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -35,33 +36,34 @@ function normalizeIcon(icon: string): LinkIcon {
   return 'link'
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+type Props = {
+  initialProfile: UIUserProfile
+}
 
-export default function DashboardPage() {
-  // Static mock — replace with authenticated user data during integration.
-  // Example: const user = await getServerSideUser()  (Server Component)
-  //          or: const { user } = useAuth()           (Client Component with context)
-  const user = MOCK_USER
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function DashboardClient({ initialProfile }: Props) {
+  const { handleLogout } = useLogout()
 
   // ── Section state ──────────────────────────────────────────────────────────
   const [activeSection, setActiveSection] = useState<DashboardSection>('inicio')
 
   // ── Profile form state ─────────────────────────────────────────────────────
   const [profileForm, setProfileForm] = useState<ProfileFormState>({
-    name: user.name,
-    title: user.title ?? '',
-    company: user.company ?? '',
-    email: user.email,
-    phone: user.phone ?? '',
-    whatsapp: user.whatsapp ?? '',
-    bio: user.bio ?? '',
-    profileImage: user.profileImage ?? '',
-    bannerImage: user.bannerImage ?? '',
+    name: initialProfile.name,
+    title: initialProfile.title ?? '',
+    company: initialProfile.company ?? '',
+    email: initialProfile.email,
+    phone: initialProfile.phone ?? '',
+    whatsapp: initialProfile.whatsapp ?? '',
+    bio: initialProfile.bio ?? '',
+    profileImage: initialProfile.profileImage ?? '',
+    bannerImage: initialProfile.bannerImage ?? '',
   })
 
   // ── Links state ────────────────────────────────────────────────────────────
   const [links, setLinks] = useState<EditableLink[]>(
-    (user.links ?? []).map((l) => ({ ...l, icon: normalizeIcon(l.icon) }))
+    (initialProfile.links ?? []).map((l: UILinkItem) => ({ ...l, icon: normalizeIcon(l.icon) }))
   )
 
   // ── Status state ───────────────────────────────────────────────────────────
@@ -71,7 +73,7 @@ export default function DashboardPage() {
 
   // ── Template state ─────────────────────────────────────────────────────────
   const [activeTemplateId, setActiveTemplateId] = useState(
-    user.selectedTemplate ?? 'minimal-black'
+    initialProfile.selectedTemplate ?? 'minimal-black'
   )
 
   // ── Image upload state ─────────────────────────────────────────────────────
@@ -84,27 +86,40 @@ export default function DashboardPage() {
 
   const handleProfileSave = async () => {
     setProfileStatus({ state: 'saving', message: 'Guardando cambios de perfil...' })
-    // Integration point: call your profile update API here.
-    //   await updateProfile(profileForm)
-    await new Promise((r) => setTimeout(r, 600)) // simulate network delay for UI feedback
-    setProfileStatus({ state: 'success', message: 'Perfil actualizado correctamente.' })
+
+    const formData = new FormData()
+    formData.append('full_name', profileForm.name)
+    formData.append('job_title', profileForm.title)
+    formData.append('company', profileForm.company)
+    formData.append('bio', profileForm.bio)
+    formData.append('phone', profileForm.phone)
+    formData.append('whatsapp', profileForm.whatsapp)
+    formData.append('avatar_url', profileForm.profileImage)
+    formData.append('banner_url', profileForm.bannerImage)
+
+    const res = await updateProfile(formData)
+
+    if (res && 'error' in res) {
+      setProfileStatus({ state: 'error', message: res.error as string })
+    } else {
+      setProfileStatus({ state: 'success', message: 'Perfil actualizado correctamente.' })
+    }
   }
 
-  /**
-   * Handles image selection for profile and banner images.
-   *
-   * Integration point — the optional `onUpload` parameter is the hook for
-   * a real upload service (e.g. Cloudinary):
-   *
-   *   const cloudinaryUpload = async (file: File): Promise<string> => {
-   *     const formData = new FormData()
-   *     formData.append('file', file)
-   *     const res = await fetch('/api/uploads/image', { method: 'POST', body: formData })
-   *     const { data } = await res.json()
-   *     return data.url
-   *   }
-   *   onImageUpload('profileImage', file, cloudinaryUpload)
-   */
+  const cloudinaryUpload = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
+    formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!)
+    
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+    const data = await res.json()
+    return data.secure_url
+  }
+
   const handleImageUpload = async (
     field: 'profileImage' | 'bannerImage',
     file: File | undefined,
@@ -116,9 +131,9 @@ export default function DashboardPage() {
     else setIsUploadingBannerImage(true)
 
     try {
-      // Use provided upload handler or fall back to local object URL for preview
-      const url = onUpload ? await onUpload(file) : URL.createObjectURL(file)
-      setProfileForm((prev) => ({ ...prev, [field]: url }))
+      const uploaderFn = onUpload || cloudinaryUpload
+      const url = await uploaderFn(file)
+      setProfileForm((prev: ProfileFormState) => ({ ...prev, [field]: url }))
       setProfileStatus({
         state: 'success',
         message: 'Imagen lista. Guarda cambios para publicar.',
@@ -133,24 +148,27 @@ export default function DashboardPage() {
 
   const handleTemplateSelect = async (templateId: string) => {
     setTemplateStatus({ state: 'saving', message: 'Aplicando plantilla...' })
-    // Integration point: persist template selection to your backend.
-    //   await setTemplate(templateId)
-    await new Promise((r) => setTimeout(r, 400))
-    setActiveTemplateId(templateId)
-    setTemplateStatus({ state: 'success', message: 'Plantilla actualizada.' })
+    const res = await updateTemplate(templateId)
+    
+    if (res && 'error' in res) {
+      setTemplateStatus({ state: 'error', message: res.error as string })
+    } else {
+      setActiveTemplateId(templateId)
+      setTemplateStatus({ state: 'success', message: 'Plantilla actualizada.' })
+    }
   }
 
   const updateLink = (id: string, field: 'title' | 'url' | 'icon', value: string) => {
-    setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, [field]: value } : l)))
+    setLinks((prev: EditableLink[]) => prev.map((l: EditableLink) => (l.id === id ? { ...l, [field]: value } : l)))
   }
 
   const removeLink = (id: string) => {
-    setLinks((prev) => prev.filter((l) => l.id !== id))
+    setLinks((prev: EditableLink[]) => prev.filter((l: EditableLink) => l.id !== id))
   }
 
   const addLink = () => {
     if (links.length >= 6) return
-    setLinks((prev) => [
+    setLinks((prev: EditableLink[]) => [
       ...prev,
       { id: crypto.randomUUID(), title: '', url: '', icon: 'website' },
     ])
@@ -167,9 +185,48 @@ export default function DashboardPage() {
       }
     }
     setLinksStatus({ state: 'saving', message: 'Sincronizando botones...' })
-    // Integration point: sync links to your backend.
-    //   await saveLinksToBackend(links)
-    await new Promise((r) => setTimeout(r, 600))
+
+    const initialLinks = initialProfile.links ?? []
+    const currentIds = new Set(links.map((l: EditableLink) => l.id))
+    
+    // Deletions -> ID exists in initial but not current
+    const deletedLinks = initialLinks.filter((l: UILinkItem) => !currentIds.has(l.id))
+
+    // Handle new and updated links
+    for (const link of links) {
+      const isNew = !initialLinks.some((l: UILinkItem) => l.id === link.id)
+      const formData = new FormData()
+      formData.append('label', link.title)
+      formData.append('url', link.url)
+      formData.append('icon', link.icon)
+
+      if (isNew) {
+        const res = await createButton(formData)
+        if (res && 'error' in res) {
+          setLinksStatus({ state: 'error', message: res.error as string })
+          return
+        }
+      } else {
+        const orig = initialLinks.find((l: UILinkItem) => l.id === link.id)!
+        if (orig.title !== link.title || orig.url !== link.url || orig.icon !== link.icon) {
+          const res = await updateButton(link.id, formData)
+          if (res && 'error' in res) {
+            setLinksStatus({ state: 'error', message: res.error as string })
+            return
+          }
+        }
+      }
+    }
+
+    // Handle deletions
+    for (const del of deletedLinks) {
+      const res = await deleteButton(del.id)
+      if (res && 'error' in res) {
+        setLinksStatus({ state: 'error', message: res.error as string })
+        return
+      }
+    }
+
     setLinksStatus({ state: 'success', message: 'Botones actualizados correctamente.' })
   }
 
@@ -182,15 +239,13 @@ export default function DashboardPage() {
     <div className="flex flex-col md:flex-row min-h-screen md:h-screen animate-in fade-in duration-700 ease-out">
       <Sidebar
         activeSection={activeSection}
-        onSectionChange={(s) => setActiveSection(s as DashboardSection)}
-        userEmail={user.email}
-        // Integration point: wire up real logout
-        onLogout={() => { /* redirect to / after auth sign-out */ }}
+        onSectionChange={(s: string) => setActiveSection(s as DashboardSection)}
+        userEmail={initialProfile.email}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1 overflow-auto bg-background p-4 md:p-6 animate-in slide-in-from-bottom-4 duration-700 ease-out delay-150 fill-mode-both">
         <div className="max-w-[1200px] mx-auto lg:px-8 xl:px-22">
-
           {activeSection === 'inicio' && (
             <div>
               <div className="flex items-center gap-2 mb-4 text-muted-foreground">
@@ -228,15 +283,14 @@ export default function DashboardPage() {
 
           {activeSection === 'plantilla' && (
             <DashboardPlantillaSection
-              userName={user.name}
-              userTitle={user.title}
+              userName={initialProfile.name}
+              userTitle={initialProfile.title}
               selectedTemplate={activeTemplateId}
               activeTemplateName={activeTemplate.name}
               templateStatus={templateStatus}
               onTemplateSelect={handleTemplateSelect}
             />
           )}
-
         </div>
       </main>
     </div>

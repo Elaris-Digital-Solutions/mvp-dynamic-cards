@@ -1,22 +1,23 @@
 import { requireActiveUser } from '@/lib/auth/requireActiveUser'
+import { createClient } from '@/lib/supabase/server'
+import { dbProfileToUIProfile } from '@/lib/utils/adapters'
+import DashboardClient from '@/frontend/components/dashboard/DashboardClient'
 
 export default async function DashboardPage() {
   const { profile } = await requireActiveUser()
+  const supabase = await createClient()
+
+  const { data: buttons } = await supabase
+    .from('action_buttons')
+    .select('*')
+    .eq('profile_id', profile.id)
+    .order('sort_order', { ascending: true })
+
+  const userProfile = dbProfileToUIProfile(profile, buttons || [])
 
   return (
-    <div>
-      <h1 className="mb-4 text-3xl font-bold">Overview</h1>
-      <div className="rounded-lg border p-6 text-sm bg-white">
-        <p className="mb-2"><strong>Name:</strong> {profile.full_name || 'N/A'}</p>
-        <p className="mb-2"><strong>Email:</strong> {profile.email || 'N/A'}</p>
-        <p className="mb-2"><strong>Role:</strong> {profile.role}</p>
-        <p className="mb-2">
-          <strong>Status:</strong>{' '}
-          <span className={profile.is_active ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-            {profile.is_active ? 'Active' : 'Inactive'}
-          </span>
-        </p>
-      </div>
+    <div className="flex-1 w-full relative">
+      <DashboardClient initialProfile={userProfile} />
     </div>
   )
 }
