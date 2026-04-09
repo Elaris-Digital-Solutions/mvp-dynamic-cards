@@ -5,7 +5,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { TEMPLATES } from '@/lib/constants'
 import { montserrat } from '@/lib/fonts'
-import { Download, ExternalLink, Globe, Instagram, Linkedin, MessageCircle } from 'lucide-react'
+import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
+import { Download, ExternalLink, Globe, MessageCircle } from 'lucide-react'
 import type { UserProfile } from '@/types/ui.types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,9 +40,9 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
   }
 
   const socialIcons: Record<string, ReactNode> = {
-    linkedin: <Linkedin className="w-5 h-5" />,
+    linkedin: <IconBrandLinkedin className="w-5 h-5" />,
     whatsapp: <MessageCircle className="w-5 h-5" />,
-    instagram: <Instagram className="w-5 h-5" />,
+    instagram: <IconBrandInstagram className="w-5 h-5" />,
     website: <Globe className="w-5 h-5" />,
     link: <Globe className="w-5 h-5" />,
   }

@@ -1,7 +1,7 @@
 import { requireActiveUser } from '@/lib/auth/requireActiveUser'
 import { createClient } from '@/lib/supabase/server'
 import { dbProfileToUIProfile } from '@/lib/utils/adapters'
-import DashboardClient from '@/frontend/components/dashboard/DashboardClient'
+import DashboardClient from '@/components/dashboard/DashboardClient'
 
 export default async function DashboardPage() {
   const { profile } = await requireActiveUser()

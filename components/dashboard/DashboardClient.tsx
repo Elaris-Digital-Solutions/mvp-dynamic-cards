@@ -2,12 +2,12 @@
 
 import { useRef, useState } from 'react'
 import { Home } from 'lucide-react'
-import { Sidebar } from '@/frontend/components/shared/sidebar'
-import { DashboardBotonesSection } from '@/frontend/features/dashboard/sections/dashboard-botones-section'
-import { DashboardInicioSection } from '@/frontend/features/dashboard/sections/dashboard-inicio-section'
-import { DashboardPerfilSection } from '@/frontend/features/dashboard/sections/dashboard-perfil-section'
-import { DashboardPlantillaSection } from '@/frontend/features/dashboard/sections/dashboard-plantilla-section'
-import { TEMPLATES } from '@/frontend/lib/constants'
+import { Sidebar } from '@/components/shared/sidebar'
+import { DashboardBotonesSection } from '@/features/dashboard/sections/dashboard-botones-section'
+import { DashboardInicioSection } from '@/features/dashboard/sections/dashboard-inicio-section'
+import { DashboardPerfilSection } from '@/features/dashboard/sections/dashboard-perfil-section'
+import { DashboardPlantillaSection } from '@/features/dashboard/sections/dashboard-plantilla-section'
+import { TEMPLATES } from '@/lib/constants'
 import { useLogout } from '@/lib/auth/useLogout'
 import { updateProfile, updateTemplate } from '@/lib/actions/profile'
 import { createButton, updateButton, deleteButton } from '@/lib/actions/buttons'
@@ -18,7 +18,7 @@ import type {
   LinkIcon,
   ProfileFormState,
   SaveStatus,
-} from '@/frontend/types/ui.types'
+} from '@/types/ui.types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

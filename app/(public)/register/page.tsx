@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { SignupForm } from '@/frontend/components/auth/signup-form'
+import { SignupForm } from '@/components/auth/signup-form'
 
 export default function RegisterPage() {
   const router = useRouter()

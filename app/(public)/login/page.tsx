@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { LoginForm } from '@/frontend/components/auth/login-form'
+import { LoginForm } from '@/components/auth/login-form'
 
 export default function LoginPage() {
   const router = useRouter()

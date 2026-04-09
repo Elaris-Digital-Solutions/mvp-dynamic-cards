@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
-import { LinktreeCard } from '@/frontend/components/card/linktree-card'
+import { LinktreeCard } from '@/components/card/linktree-card'
 import { dbProfileToUIProfile } from '@/lib/utils/adapters'
 
 interface ProfilePageProps {
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
     .from('profiles')
     .select('full_name, job_title, company, bio, avatar_url')
     .eq('username', username)
-    .single()
+    .single() as any
 
   if (!profile) return { title: 'Not Found' }
 
@@ -42,7 +42,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .from('profiles')
     .select('*')
     .eq('username', username)
-    .single()
+    .single() as any
 
   // Ensure profile exists and is explicitly marked active by an Admin
   if (!profile || !profile.is_active) {
@@ -62,13 +62,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
   
-  supabase.from('click_events').insert({
+  supabase.from('click_events' as any).insert({
     profile_id: profile.id,
     event_type: 'page_view',
     user_agent: userAgent
-  }).then(({ error }) => {
+  } as any).then(({ error }: any) => {
     if (error) console.error("Non-blocking page view log failed:", error.message)
-  }).catch(() => {})
+  }, () => {})
 
   // 4. Adapt data for pure UI layer
   // The adapter strips all DB-specific columns (role, is_active, etc.)
