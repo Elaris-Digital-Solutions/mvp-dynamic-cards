@@ -196,6 +196,7 @@ export default function DashboardClient({ initialProfile }: Props) {
     for (const link of links) {
       const isNew = !initialLinks.some((l: UILinkItem) => l.id === link.id)
       const formData = new FormData()
+      formData.append('id', link.id)
       formData.append('label', link.title)
       formData.append('url', link.url)
       formData.append('icon', link.icon)

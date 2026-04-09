@@ -79,7 +79,7 @@ export async function updateProfile(
     return { error: error.message }
   }
 
-  revalidatePath('/dashboard/profile')
+  revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)
   return { success: true }
 }
