@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
+import { checkUsernameAvailability } from '@/lib/auth/checkUsernameAvailability'
+import { getUsernameSuggestions } from '@/lib/utils/usernameSuggestions'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SignupFormProps {
@@ -30,34 +31,92 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
   const [cardUrl, setCardUrl] = useState('')
   const [formError, setFormError] = useState('')
   const [internalLoading, setInternalLoading] = useState(false)
+  const [usernameError, setUsernameError] = useState('')
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [isValidatingUsername, setIsValidatingUsername] = useState(false)
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(false)
 
   const isLoading = externalLoading || internalLoading
-  const isSubmitDisabled = isLoading || !name.trim() || !email.trim() || !password.trim() || !cardUrl.trim()
+  const isSubmitDisabled = isLoading || isValidatingUsername || !!usernameError || !name.trim() || !email.trim() || !password.trim() || !cardUrl.trim()
   const pureWhiteStyle = { color: '#ffffff', opacity: 1, WebkitTextFillColor: '#ffffff' }
 
   const handleCardUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.toLowerCase()
-    value = value.replace(/\s+/g, '-')
     value = value.replace(/[^a-z0-9-]/g, '')
     value = value.replace(/-+/g, '-')
     setCardUrl(value)
+    setIsUsernameAvailable(false)
   }
+
+  useEffect(() => {
+    const rawValue = cardUrl.trim()
+    if (!rawValue) {
+      setUsernameError('')
+      setSuggestions([])
+      setIsValidatingUsername(false)
+      return
+    }
+
+    setIsValidatingUsername(true)
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const { available } = await checkUsernameAvailability(rawValue)
+        if (!available) {
+          setUsernameError('Este username ya está en uso')
+          setIsUsernameAvailable(false)
+          const suggested = await getUsernameSuggestions(rawValue)
+          setSuggestions(suggested)
+        } else {
+          setUsernameError('')
+          setSuggestions([])
+          setIsUsernameAvailable(true)
+        }
+      } catch (error) {
+        // Silently handle network errors here
+        setIsUsernameAvailable(false)
+      } finally {
+        setIsValidatingUsername(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [cardUrl])
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (usernameError || isValidatingUsername) return
+
     setFormError('')
     setInternalLoading(true)
 
     try {
+      // Double check before final submisson to prevent race conditions
+      const { available } = await checkUsernameAvailability(cardUrl.trim())
+      if (!available) {
+        setUsernameError('Este username ya está en uso')
+        const suggested = await getUsernameSuggestions(cardUrl.trim())
+        setSuggestions(suggested)
+        setInternalLoading(false)
+        return
+      }
+
       if (onSignup) {
         await onSignup(name.trim(), email.trim(), password, cardUrl.trim())
       }
       // Default mock behavior: navigate to dashboard
-      router.push('/dashboard')
+      // Note: the component routing handles dashboard via handleSignup
+      if (!onSignup) {
+        router.push('/dashboard')
+      }
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'No se pudo crear la cuenta.')
     } finally {
-      setInternalLoading(false)
+      if (!onSignup || usernameError) {
+        // If external routing handles it, we might unmount anyway.
+        setInternalLoading(false)
+      } else {
+         setInternalLoading(false)
+      }
     }
   }
 
@@ -111,6 +170,39 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                 />
               </div>
               <p className="text-[10px] text-white/60">Tu enlace único. Sin espacios ni caracteres especiales.</p>
+              
+              {isUsernameAvailable && !isValidatingUsername && !usernameError && (
+                <div className="text-sm text-green-400 mt-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                  <p>✓ Username disponible</p>
+                </div>
+              )}
+
+              {usernameError && !isValidatingUsername && (
+                <div className="text-sm text-red-300 mt-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                  <p>{usernameError}</p>
+                  {suggestions.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs mb-1.5 text-white/80">Intenta con:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestions.map((sug) => (
+                          <button
+                            key={sug}
+                            type="button"
+                            onClick={() => {
+                              setCardUrl(sug)
+                              setUsernameError('')
+                              setSuggestions([])
+                            }}
+                            className="bg-white/10 hover:bg-white/20 transition-colors text-white text-xs px-2.5 py-1.5 rounded"
+                          >
+                            {sug}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
