@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
+import { detectPlatform } from '@/lib/utils/detectPlatform'
+import { hashIp } from '@/lib/utils/hashIp'
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { profile_id, button_id } = body
+    const { profile_id, button_id, url, label } = body
 
-    if (!profile_id || !button_id) {
+    if (!profile_id) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
     }
 
@@ -17,24 +19,35 @@ export async function POST(req: Request) {
     // Attempt best-effort IP extraction cleanly
     const forwardedFor = headersList.get('x-forwarded-for')
     const realIp = headersList.get('x-real-ip')
-    const ip_hash = forwardedFor ? forwardedFor.split(',')[0] : realIp || 'unknown'
+    const reqIp = headersList.get('x-client-ip') // Some proxies
+    
+    const requestIp = forwardedFor ? forwardedFor.split(',')[0] : (realIp || reqIp || 'unknown')
+    
+    const ip_hash = await hashIp(requestIp)
     const user_agent = headersList.get('user-agent')
+    const platform = detectPlatform(url)
 
+    // To prevent Next.js from killing the process before the TCP string is sent to Supabase,
+    // we must await the insertion. It only takes ~50ms and prevents context termination.
     const { error } = await supabase.from('click_events').insert({
       profile_id,
-      button_id,
+      button_id: button_id || null,
       event_type: 'button_click',
       user_agent,
-      ip_hash
+      ip_hash,
+      platform,
+      url,
+      button_label: label
     })
 
     if (error) {
-      console.error("Tracking API Error: ", error)
-      return NextResponse.json({ error: 'Failed to record tracking' }, { status: 500 })
+      console.error("Insert error details:", error)
     }
 
-    return NextResponse.json({ success: true })
+    // Return success via 204 No Content
+    return new NextResponse(null, { status: 204 })
   } catch (err) {
-    return NextResponse.json({ error: 'Invalid Payload' }, { status: 400 })
+    // Fail silently on bad payload as well
+    return new NextResponse(null, { status: 204 })
   }
 }

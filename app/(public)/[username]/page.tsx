@@ -61,11 +61,19 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Executed silently without blocking the Next.js render thread
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
+  const forwardedFor = headersList.get('x-forwarded-for')
+  const realIp = headersList.get('x-real-ip')
+  const reqIp = headersList.get('x-client-ip')
   
+  const rawIp = forwardedFor ? forwardedFor.split(',')[0] : (realIp || reqIp || 'unknown')
+  const { hashIp } = await import('@/lib/utils/hashIp')
+  const ip_hash = await hashIp(rawIp)
+
   supabase.from('click_events' as any).insert({
     profile_id: profile.id,
     event_type: 'page_view',
-    user_agent: userAgent
+    user_agent: userAgent,
+    ip_hash: ip_hash
   } as any).then(({ error }: any) => {
     if (error) console.error("Non-blocking page view log failed:", error.message)
   }, () => {})

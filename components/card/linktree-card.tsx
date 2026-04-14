@@ -50,6 +50,26 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
   const isLightTemplate = template.textStyle === 'dark'
   const visibleLinks = profile.links?.slice(0, 6) ?? []
 
+  const handleLinkClick = (link: { id: string; title: string; url: string }) => {
+    if (!profile.id) return;
+    
+    const payload = JSON.stringify({ 
+      profile_id: profile.id, 
+      button_id: link.id,
+      url: link.url,
+      label: link.title
+    })
+
+    try {
+      fetch('/api/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true
+      }).catch(err => console.error("Tracking fetch failed", err))
+    } catch (err) {}
+  }
+
   return (
     <div
       style={{ backgroundColor: template.colors.background }}
@@ -138,6 +158,7 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => handleLinkClick(link)}
                 style={{
                   borderColor: isLightTemplate ? '#d0dceb' : template.colors.border,
                   backgroundColor: isLightTemplate ? '#ffffff' : '#060a12',
