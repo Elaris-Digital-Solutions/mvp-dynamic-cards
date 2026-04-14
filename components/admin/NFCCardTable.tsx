@@ -100,7 +100,7 @@ export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: 
                <span className="text-gray-700">Deploy as <span className="font-bold text-green-600">Active Map</span></span>
              </label>
 
-            <button disabled={isPending} type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded shadow-sm font-medium transition disabled:opacity-50 tracking-wide text-sm w-full sm:w-auto">
+            <button disabled={isPending} type="submit" className="cursor-pointer disabled:cursor-wait bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded shadow-sm font-medium transition disabled:opacity-50 tracking-wide text-sm w-full sm:w-auto">
               {isPending ? 'Processing...' : 'Write Configuration to Server'}
             </button>
           </div>
@@ -137,7 +137,7 @@ export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: 
                       <button 
                         type="button"
                         onClick={() => handleCopyUrl(c.card_uid)}
-                        className={`self-start text-[11px] font-bold uppercase tracking-wider border px-3 py-1.5 rounded transition shadow-sm flex items-center space-x-1 ${copiedId === c.card_uid ? 'bg-green-50 text-green-700 border-green-200' : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-300'}`}
+                        className={`cursor-pointer disabled:cursor-not-allowed self-start text-[11px] font-bold uppercase tracking-wider border px-3 py-1.5 rounded transition shadow-sm flex items-center space-x-1 ${copiedId === c.card_uid ? 'bg-green-50 text-green-700 border-green-200' : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-300'}`}
                       >
                         {copiedId === c.card_uid ? <span>Copied!</span> : <span>Copy URL</span>}
                       </button>
@@ -147,7 +147,7 @@ export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: 
                     <button 
                       onClick={() => handleToggle(c.id, c.is_active)}
                       disabled={isPending}
-                      className={`px-3 py-1.5 text-[11px] font-extrabold tracking-wider rounded border transition-colors ${c.is_active ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 shadow-sm' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'}`}
+                      className={`cursor-pointer disabled:cursor-not-allowed px-3 py-1.5 text-[11px] font-extrabold tracking-wider rounded border transition-colors ${c.is_active ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 shadow-sm' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'}`}
                     >
                       {c.is_active ? 'ACTIVE' : 'DEAD'}
                     </button>
@@ -159,7 +159,7 @@ export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: 
                     {c.notes || '-'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => handleDelete(c.id)} disabled={isPending} className="text-[11px] uppercase tracking-wider font-bold bg-white text-red-600 px-3 py-1.5 rounded border border-red-200 hover:bg-red-50 transition shadow-sm">
+                    <button onClick={() => handleDelete(c.id)} disabled={isPending} className="cursor-pointer disabled:cursor-not-allowed text-[11px] uppercase tracking-wider font-bold bg-white text-red-600 px-3 py-1.5 rounded border border-red-200 hover:bg-red-50 transition shadow-sm">
                       Wipe
                     </button>
                   </td>

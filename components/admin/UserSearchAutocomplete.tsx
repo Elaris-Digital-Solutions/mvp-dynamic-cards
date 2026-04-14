@@ -50,7 +50,7 @@ export function UserSearchAutocomplete() {
             <button 
               type="button" 
               onClick={() => { setSelectedProfile(null); setSearchQuery(''); setShowDropdown(true); }} 
-              className="text-blue-500 hover:text-blue-700 p-1 font-bold text-lg leading-none"
+              className="cursor-pointer text-blue-500 hover:text-blue-700 p-1 font-bold text-lg leading-none"
             >
               &times;
             </button>
@@ -74,8 +74,8 @@ export function UserSearchAutocomplete() {
                   searchResults.map(p => (
                     <div 
                       key={p.id} 
-                      onClick={() => { setSelectedProfile(p); setShowDropdown(false); }}
-                      className={`p-3 text-sm cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0 ${!p.is_active ? 'opacity-50' : ''}`}
+                      onClick={() => { if (p.is_active) { setSelectedProfile(p); setShowDropdown(false); } }}
+                      className={`p-3 text-sm border-b border-gray-100 last:border-0 ${!p.is_active ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}
                     >
                       <div className="font-semibold text-gray-900">{p.full_name || `@${p.username}`} {!p.is_active && ' [INACTIVE]'}</div>
                       <div className="text-xs text-gray-500">@{p.username}</div>
