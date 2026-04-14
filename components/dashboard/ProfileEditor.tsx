@@ -14,12 +14,25 @@ export function ProfileEditor({ profile }: { profile: Profile }) {
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '')
   const [bannerUrl, setBannerUrl] = useState(profile.banner_url || '')
 
+  const [useSameWhatsApp, setUseSameWhatsApp] = useState(true)
+  const [phone, setPhone] = useState(profile.phone || '')
+  const [whatsapp, setWhatsapp] = useState(profile.whatsapp || '')
+
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setMessage(null)
     const formData = new FormData(e.currentTarget)
     formData.append('avatar_url', avatarUrl)
     formData.append('banner_url', bannerUrl)
+
+    // Enforce frontend consistency before submission
+    if (useSameWhatsApp) {
+      formData.set('whatsapp', phone)
+    } else {
+      formData.set('whatsapp', whatsapp)
+    }
+
 
     startTransition(async () => {
       const res = await updateProfile(formData)
@@ -72,14 +85,47 @@ export function ProfileEditor({ profile }: { profile: Profile }) {
           <textarea name="bio" rows={3} defaultValue={profile.bio || ''} className="w-full border p-2 rounded focus:ring-1 focus:ring-blue-500" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start relative">
           <div>
             <label className="block text-sm font-medium mb-1">Phone</label>
-            <input name="phone" defaultValue={profile.phone || ''} className="w-full border p-2 rounded" />
+            <input 
+              name="phone" 
+              value={phone}
+              onChange={(e) => {
+                setPhone(e.target.value)
+                if (useSameWhatsApp) setWhatsapp(e.target.value)
+              }}
+              className="w-full border p-2 rounded focus:ring-1 focus:ring-blue-500" 
+            />
+            
+            <div className="mt-3 flex items-center">
+              <input 
+                type="checkbox" 
+                id="same-whatsapp"
+                checked={useSameWhatsApp}
+                onChange={(e) => {
+                  setUseSameWhatsApp(e.target.checked)
+                  if (e.target.checked) setWhatsapp(phone)
+                }}
+                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+              />
+              <label htmlFor="same-whatsapp" className="ml-2 text-sm text-gray-700 cursor-pointer font-medium select-none">
+                Usar el mismo número para WhatsApp
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 mt-1 italic ml-6">
+              Si está activado, usaremos el mismo número para WhatsApp
+            </p>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">WhatsApp</label>
-            <input name="whatsapp" defaultValue={profile.whatsapp || ''} className="w-full border p-2 rounded" />
+          
+          <div className={`transition-all duration-300 md:absolute md:w-[calc(50%-0.5rem)] md:right-0 ${useSameWhatsApp ? 'opacity-0 scale-95 pointer-events-none invisible h-0 overflow-hidden' : 'opacity-100 scale-100 visible h-auto'}`}>
+            <label className="block text-sm font-medium mb-1 text-gray-700">Custom WhatsApp Number</label>
+            <input 
+              name="whatsapp" 
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              className="w-full border p-2 rounded focus:ring-1 focus:ring-blue-500 bg-gray-50" 
+            />
           </div>
         </div>
 

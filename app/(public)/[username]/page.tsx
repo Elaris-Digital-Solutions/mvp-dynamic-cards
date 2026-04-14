@@ -1,12 +1,36 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
-import TemplateOne from '@/components/templates/TemplateOne'
+import { LinktreeCard } from '@/components/card/linktree-card'
+import { dbProfileToUIProfile } from '@/lib/utils/adapters'
 
 interface ProfilePageProps {
   params: Promise<{
     username: string
   }>
+}
+
+export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
+  const { username } = await params
+  const supabase = await createClient()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, job_title, company, bio, avatar_url')
+    .eq('username', username)
+    .single() as any
+
+  if (!profile) return { title: 'Not Found' }
+
+  return {
+    title: profile.full_name || username,
+    description: [profile.job_title, profile.company, profile.bio].filter(Boolean).join(' · '),
+    openGraph: {
+      title: profile.full_name || username,
+      images: profile.avatar_url ? [{ url: profile.avatar_url }] : [],
+    },
+  }
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
@@ -18,8 +42,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .from('profiles')
     .select('*')
     .eq('username', username)
-    .single()
+    .single() as any
 
+  // Ensure profile exists and is explicitly marked active by an Admin
   if (!profile || !profile.is_active) {
     notFound()
   }
@@ -36,20 +61,27 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Executed silently without blocking the Next.js render thread
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
+  const forwardedFor = headersList.get('x-forwarded-for')
+  const realIp = headersList.get('x-real-ip')
+  const reqIp = headersList.get('x-client-ip')
   
-  supabase.from('click_events').insert({
+  const rawIp = forwardedFor ? forwardedFor.split(',')[0] : (realIp || reqIp || 'unknown')
+  const { hashIp } = await import('@/lib/utils/hashIp')
+  const ip_hash = await hashIp(rawIp)
+
+  supabase.from('click_events' as any).insert({
     profile_id: profile.id,
     event_type: 'page_view',
-    user_agent: userAgent
-  }).then(({ error }) => {
+    user_agent: userAgent,
+    ip_hash: ip_hash
+  } as any).then(({ error }: any) => {
     if (error) console.error("Non-blocking page view log failed:", error.message)
-  }).catch(() => {})
+  }, () => {})
 
-  // 4. Delegated Render
-  if (profile.template_id === 1) {
-    return <TemplateOne profile={profile} buttons={buttons || []} />
-  }
+  // 4. Adapt data for pure UI layer
+  // The adapter strips all DB-specific columns (role, is_active, etc.)
+  const uiProfile = dbProfileToUIProfile(profile, buttons || [])
 
-  // Fallback to TemplateOne for any unmapped templates
-  return <TemplateOne profile={profile} buttons={buttons || []} />
+  // 5. Production Render
+  return <LinktreeCard profile={uiProfile} />
 }

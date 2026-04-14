@@ -1,29 +1,35 @@
 'use client'
 
 import { Database } from '@/types/database'
-import { useState } from 'react'
 
 type ActionButton = Database['public']['Tables']['action_buttons']['Row']
 
 export function InteractiveButton({ button, profileId }: { button: ActionButton, profileId: string }) {
-  const [isLoading, setIsLoading] = useState(false)
 
-  const handleClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    if (isLoading) return;
-    
-    setIsLoading(true);
+  const handleClick = () => {
+    const payload = JSON.stringify({ 
+      profile_id: profileId, 
+      button_id: button.id,
+      url: button.url,
+      label: button.label
+    })
+
     try {
-      await fetch('/api/track-click', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile_id: profileId, button_id: button.id })
-      });
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        // Blob with application/json required to properly parse on the Next.js API side using req.json()
+        const blob = new Blob([payload], { type: 'application/json' })
+        navigator.sendBeacon('/api/track-click', blob)
+      } else {
+        // Fallback using keepalive
+        fetch('/api/track-click', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true
+        }).catch(() => {})
+      }
     } catch (err) {
-      console.error("Click tracking failed", err)
-    } finally {
-      setIsLoading(false);
-      window.open(button.url, '_blank', 'noopener,noreferrer');
+      // Fail silently
     }
   }
 
@@ -31,13 +37,11 @@ export function InteractiveButton({ button, profileId }: { button: ActionButton,
     <a 
       href={button.url} 
       onClick={handleClick}
-      className={`block w-full py-3 px-4 rounded-xl border font-medium transition-all ${
-        isLoading 
-        ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-wait flex items-center justify-center' 
-        : 'bg-white text-gray-800 border-gray-200 hover:bg-gray-50 hover:shadow-sm flex items-center justify-center'
-      }`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block w-full py-3 px-4 rounded-xl border font-medium transition-all bg-white text-gray-800 border-gray-200 hover:bg-gray-50 hover:shadow-sm flex items-center justify-center"
     >
-      {isLoading ? 'Redirecting...' : button.label}
+      {button.label}
     </a>
   )
 }

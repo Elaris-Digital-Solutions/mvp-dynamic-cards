@@ -2,7 +2,9 @@
 
 import { processNFCCard, toggleNFCCard, deleteNFCCard } from '@/lib/actions/admin'
 import { Database } from '@/types/database'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
+import { UserSearchAutocomplete } from '@/components/admin/UserSearchAutocomplete'
+
 
 type NFCCard = Database['public']['Tables']['nfc_cards']['Row']
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -10,6 +12,20 @@ type Profile = Database['public']['Tables']['profiles']['Row']
 export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: Profile[] }) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [baseUrl, setBaseUrl] = useState('')
+
+  useEffect(() => {
+    setBaseUrl(process.env.NEXT_PUBLIC_APP_URL || window.location.origin)
+  }, [])
+
+  const handleCopyUrl = async (uid: string) => {
+    const fullUrl = `${baseUrl}/nfc/${uid}`
+    await navigator.clipboard.writeText(fullUrl)
+    setCopiedId(uid)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
 
   const handleProcess = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -65,26 +81,16 @@ export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="flex flex-col">
               <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 flex items-center">
-                Card UID <span className="text-red-500 ml-1.5">*</span>
+                ID de tarjeta <span className="text-red-500 ml-1.5">*</span>
               </label>
-              <input required name="card_uid" placeholder="e.g. 04:A1:B2..." className="w-full border border-gray-300 p-2.5 rounded text-sm bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 transition-colors font-mono" />
+              <input required name="card_uid" placeholder="e.g. 04:A1:B2..." className="w-full border border-gray-300 p-2.5 rounded text-sm bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-1 focus:ring-blue-500 transition-colors font-mono" />
             </div>
             
-            <div className="flex flex-col">
-              <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Foreign Target (Profile ID)</label>
-              <select name="profile_id" className="w-full border border-gray-300 p-2.5 rounded text-sm bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer">
-                <option value="">-- Unassigned (Wipe Binding) --</option>
-                {profiles.map(p => (
-                  <option key={p.id} value={p.id} disabled={!p.is_active} className={!p.is_active ? 'text-red-400 font-medium' : 'text-gray-900 font-medium'}>
-                    {p.full_name || `@${p.username}`} {p.email ? `(${p.email})` : ''} {!p.is_active ? ' [INACTIVE]' : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <UserSearchAutocomplete />
 
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Internal Notes</label>
-              <input name="notes" placeholder="Batch 001 - Black Matte" className="w-full border border-gray-300 p-2.5 rounded text-sm bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 transition-colors" />
+              <label className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Descripción de la tarjeta</label>
+              <input name="notes" placeholder="Batch 001 - Black Matte" className="w-full border border-gray-300 p-2.5 rounded text-sm bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-1 focus:ring-blue-500 transition-colors" />
             </div>
           </div>
           
@@ -94,7 +100,7 @@ export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: 
                <span className="text-gray-700">Deploy as <span className="font-bold text-green-600">Active Map</span></span>
              </label>
 
-            <button disabled={isPending} type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded shadow-sm font-medium transition disabled:opacity-50 tracking-wide text-sm w-full sm:w-auto">
+            <button disabled={isPending} type="submit" className="cursor-pointer disabled:cursor-wait bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded shadow-sm font-medium transition disabled:opacity-50 tracking-wide text-sm w-full sm:w-auto">
               {isPending ? 'Processing...' : 'Write Configuration to Server'}
             </button>
           </div>
@@ -116,12 +122,32 @@ export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: 
             <tbody>
               {cards.map(c => (
                 <tr key={c.id} className="border-b hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 font-mono font-semibold text-gray-800 tracking-wide bg-gray-50 border-r">{c.card_uid}</td>
+                  <td className="px-6 py-4 bg-gray-50 border-r align-top min-w-[280px]">
+                    <div className="flex flex-col space-y-2.5">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Card ID:</span>
+                        <div className="font-mono font-semibold text-gray-800">{c.card_uid}</div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Full URL:</span>
+                        <div className="font-mono text-xs text-blue-600 truncate max-w-[280px] sm:max-w-xs block" title={`${baseUrl}/nfc/${c.card_uid}`}>
+                          {baseUrl ? `${baseUrl}/nfc/${c.card_uid}` : `.../nfc/${c.card_uid}`}
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => handleCopyUrl(c.card_uid)}
+                        className={`cursor-pointer disabled:cursor-not-allowed self-start text-[11px] font-bold uppercase tracking-wider border px-3 py-1.5 rounded transition shadow-sm flex items-center space-x-1 ${copiedId === c.card_uid ? 'bg-green-50 text-green-700 border-green-200' : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-300'}`}
+                      >
+                        {copiedId === c.card_uid ? <span>Copied!</span> : <span>Copy URL</span>}
+                      </button>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 align-middle">
                     <button 
                       onClick={() => handleToggle(c.id, c.is_active)}
                       disabled={isPending}
-                      className={`px-3 py-1.5 text-[11px] font-extrabold tracking-wider rounded border transition-colors ${c.is_active ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 shadow-sm' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'}`}
+                      className={`cursor-pointer disabled:cursor-not-allowed px-3 py-1.5 text-[11px] font-extrabold tracking-wider rounded border transition-colors ${c.is_active ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 shadow-sm' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'}`}
                     >
                       {c.is_active ? 'ACTIVE' : 'DEAD'}
                     </button>
@@ -133,7 +159,7 @@ export function NFCCardTable({ cards, profiles }: { cards: NFCCard[], profiles: 
                     {c.notes || '-'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => handleDelete(c.id)} disabled={isPending} className="text-[11px] uppercase tracking-wider font-bold bg-white text-red-600 px-3 py-1.5 rounded border border-red-200 hover:bg-red-50 transition shadow-sm">
+                    <button onClick={() => handleDelete(c.id)} disabled={isPending} className="cursor-pointer disabled:cursor-not-allowed text-[11px] uppercase tracking-wider font-bold bg-white text-red-600 px-3 py-1.5 rounded border border-red-200 hover:bg-red-50 transition shadow-sm">
                       Wipe
                     </button>
                   </td>

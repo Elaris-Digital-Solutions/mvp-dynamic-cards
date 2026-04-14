@@ -49,6 +49,10 @@ export interface Database {
           event_type: 'page_view' | 'button_click' | 'vcf_download' | 'whatsapp_click'
           user_agent: string | null
           ip_hash: string | null
+          platform: string
+          button_label: string | null
+          url: string | null
+          metadata: Json | null
           created_at: string | null
         }
         Insert: {
@@ -58,6 +62,10 @@ export interface Database {
           event_type: 'page_view' | 'button_click' | 'vcf_download' | 'whatsapp_click'
           user_agent?: string | null
           ip_hash?: string | null
+          platform?: string
+          button_label?: string | null
+          url?: string | null
+          metadata?: Json | null
           created_at?: string | null
         }
         Update: {
@@ -67,6 +75,10 @@ export interface Database {
           event_type?: 'page_view' | 'button_click' | 'vcf_download' | 'whatsapp_click'
           user_agent?: string | null
           ip_hash?: string | null
+          platform?: string
+          button_label?: string | null
+          url?: string | null
+          metadata?: Json | null
           created_at?: string | null
         }
       }

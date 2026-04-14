@@ -108,3 +108,23 @@ export async function deleteNFCCard(id: string) {
   revalidatePath('/admin/cards')
   return { success: true }
 }
+
+export async function searchAdminProfiles(query: string) {
+  const { user } = await requireAdmin()
+  const supabase = await createClient()
+
+  if (!query || query.trim().length < 2) return { profiles: [] }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, full_name, is_active')
+    .ilike('username', `%${query}%`)
+    .limit(10)
+
+  if (error) {
+    console.error("Admin user search Supabase error:", error)
+    return { error: `Search failed: ${error.message}` }
+  }
+  
+  return { profiles: data || [] }
+}
