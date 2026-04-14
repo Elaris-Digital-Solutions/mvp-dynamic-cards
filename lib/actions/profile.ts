@@ -4,25 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireActiveUser } from '@/lib/auth/requireActiveUser'
 import { revalidatePath } from 'next/cache'
 import { templateKeyToId } from '@/lib/utils/template-map'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function isValidCloudinaryUrl(url: string | null): boolean {
-  if (!url) return true
-  try {
-    const parsed = new URL(url)
-    return parsed.hostname === 'res.cloudinary.com'
-  } catch {
-    return false
-  }
-}
-
-function sanitizeText(value: FormDataEntryValue | null): string | null {
-  if (!value || typeof value !== 'string') return null
-  const trimmed = value.trim()
-  if (!trimmed) return null
-  return trimmed.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
+import { updateProfileSchema } from '@/lib/validation/schemas'
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
@@ -44,19 +26,20 @@ export async function updateProfile(
   const { user, profile } = await requireActiveUser()
   const supabase = await createClient()
 
-  const full_name = sanitizeText(formData.get('full_name'))
-  const job_title = sanitizeText(formData.get('job_title'))
-  const company = sanitizeText(formData.get('company'))
-  const bio = sanitizeText(formData.get('bio'))
-  const phone = sanitizeText(formData.get('phone'))
-  const whatsappInput = sanitizeText(formData.get('whatsapp'))
-  const whatsapp = whatsappInput || phone
-  const avatar_url = (formData.get('avatar_url') as string | null ?? '').trim() || null
-  const banner_url = (formData.get('banner_url') as string | null ?? '').trim() || null
+  const parsed = updateProfileSchema.safeParse({
+    full_name:  formData.get('full_name'),
+    job_title:  formData.get('job_title'),
+    company:    formData.get('company'),
+    bio:        formData.get('bio'),
+    phone:      formData.get('phone'),
+    whatsapp:   formData.get('whatsapp'),
+    avatar_url: formData.get('avatar_url'),
+    banner_url: formData.get('banner_url'),
+  })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
 
-  if (!isValidCloudinaryUrl(avatar_url) || !isValidCloudinaryUrl(banner_url)) {
-    return { error: 'Invalid image URL. Must be a secure Cloudinary asset.' }
-  }
+  const { full_name, job_title, company, bio, phone, avatar_url, banner_url } = parsed.data
+  const whatsapp = parsed.data.whatsapp || phone
 
   // Cast required: Supabase's postgrest generic chain infers update() param as
   // 'never' when multiple nullable fields are composed — known TS 5.x + supabase-ssr issue.
