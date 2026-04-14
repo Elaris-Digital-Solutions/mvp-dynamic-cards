@@ -115,7 +115,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
         // If external routing handles it, we might unmount anyway.
         setInternalLoading(false)
       } else {
-         setInternalLoading(false)
+        setInternalLoading(false)
       }
     }
   }
@@ -153,10 +153,10 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cardUrl" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Enlace de tu tarjeta</Label>
+              <Label htmlFor="cardUrl" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Enlace de tu perfil</Label>
               <div className="flex h-11 w-full rounded-lg border border-border/60 bg-background/55 backdrop-blur-sm overflow-hidden transition-colors focus-within:border-white/40">
                 <span className="flex items-center px-3 text-white/60 bg-white/5 border-r border-border/60 text-sm select-none">
-                  nfc.com/
+                  veltrix.com/
                 </span>
                 <input
                   id="cardUrl"
@@ -170,7 +170,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                 />
               </div>
               <p className="text-[10px] text-white/60">Tu enlace único. Sin espacios ni caracteres especiales.</p>
-              
+
               {isUsernameAvailable && !isValidatingUsername && !usernameError && (
                 <div className="text-sm text-green-400 mt-2 animate-in fade-in slide-in-from-top-1 duration-300">
                   <p>✓ Username disponible</p>
