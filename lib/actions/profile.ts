@@ -49,7 +49,8 @@ export async function updateProfile(
   const company = sanitizeText(formData.get('company'))
   const bio = sanitizeText(formData.get('bio'))
   const phone = sanitizeText(formData.get('phone'))
-  const whatsapp = sanitizeText(formData.get('whatsapp'))
+  const whatsappInput = sanitizeText(formData.get('whatsapp'))
+  const whatsapp = whatsappInput || phone
   const avatar_url = (formData.get('avatar_url') as string | null ?? '').trim() || null
   const banner_url = (formData.get('banner_url') as string | null ?? '').trim() || null
 

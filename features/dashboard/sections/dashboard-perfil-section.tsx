@@ -147,13 +147,55 @@ export function DashboardPerfilSection({
             <Label htmlFor="email">Email</Label>
             <Input id="email" value={profileForm.email} onChange={(e) => setProfileForm((prev) => ({ ...prev, email: e.target.value }))} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Telefono</Label>
-            <Input id="phone" value={profileForm.phone} onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="whatsapp">WhatsApp</Label>
-            <Input id="whatsapp" value={profileForm.whatsapp} onChange={(e) => setProfileForm((prev) => ({ ...prev, whatsapp: e.target.value }))} />
+          <div className="space-y-2 md:col-span-2 relative grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefono</Label>
+              <Input
+                id="phone"
+                value={profileForm.phone}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setProfileForm((prev) => ({
+                    ...prev,
+                    phone: val,
+                    ...(prev.useSameWhatsApp ? { whatsapp: val } : {})
+                  }))
+                }}
+              />
+
+              <div className="mt-3 flex items-center">
+                <input
+                  type="checkbox"
+                  id="same-whatsapp"
+                  checked={profileForm.useSameWhatsApp}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setProfileForm((prev) => ({
+                      ...prev,
+                      useSameWhatsApp: checked,
+                      // Automatically sync if enabled
+                      ...(checked ? { whatsapp: prev.phone } : {})
+                    }))
+                  }}
+                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                />
+                <label htmlFor="same-whatsapp" className="ml-2 text-sm text-foreground cursor-pointer font-medium select-none">
+                  Usar el mismo número para WhatsApp
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 italic ml-6">
+                Si está activado, usaremos el mismo número para WhatsApp
+              </p>
+            </div>
+
+            <div className={`space-y-2 transition-all duration-300 md:absolute md:w-[calc(50%-0.375rem)] md:right-0 ${profileForm.useSameWhatsApp ? 'opacity-0 scale-95 pointer-events-none invisible h-0 overflow-hidden' : 'opacity-100 scale-100 visible h-auto'}`}>
+              <Label htmlFor="whatsapp">Número de WhatsApp</Label>
+              <Input
+                id="whatsapp"
+                value={profileForm.whatsapp}
+                onChange={(e) => setProfileForm((prev) => ({ ...prev, whatsapp: e.target.value }))}
+              />
+            </div>
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="bio">Biografia</Label>

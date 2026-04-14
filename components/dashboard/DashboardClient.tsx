@@ -59,6 +59,7 @@ export default function DashboardClient({ initialProfile }: Props) {
     bio: initialProfile.bio ?? '',
     profileImage: initialProfile.profileImage ?? '',
     bannerImage: initialProfile.bannerImage ?? '',
+    useSameWhatsApp: true,
   })
 
   // ── Links state ────────────────────────────────────────────────────────────
@@ -93,7 +94,7 @@ export default function DashboardClient({ initialProfile }: Props) {
     formData.append('company', profileForm.company)
     formData.append('bio', profileForm.bio)
     formData.append('phone', profileForm.phone)
-    formData.append('whatsapp', profileForm.whatsapp)
+    formData.append('whatsapp', profileForm.useSameWhatsApp ? profileForm.phone : profileForm.whatsapp)
     formData.append('avatar_url', profileForm.profileImage)
     formData.append('banner_url', profileForm.bannerImage)
 

@@ -50,6 +50,7 @@ export type ProfileFormState = {
   bio: string
   profileImage: string
   bannerImage: string
+  useSameWhatsApp: boolean
 }
 
 export type SaveState = 'idle' | 'saving' | 'success' | 'error'
