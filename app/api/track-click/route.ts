@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     // Silently drop requests that exceed 30 events/min per IP.
     // NOTE: this is per-process only. For multi-instance production,
     // replace isRateLimited() with Upstash Redis rate limiting.
-    if (isRateLimited(ip_hash)) {
+    if (await isRateLimited(ip_hash)) {
       return new NextResponse(null, { status: 204 })
     }
 
