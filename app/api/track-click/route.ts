@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { detectPlatform } from '@/lib/utils/detectPlatform'
 import { hashIp } from '@/lib/utils/hashIp'
+import { isRateLimited } from '@/lib/utils/rateLimiter'
 
 export async function POST(req: Request) {
   try {
@@ -13,17 +14,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
     }
 
-    const supabase = await createClient()
     const headersList = await headers()
-    
+
     // Attempt best-effort IP extraction cleanly
     const forwardedFor = headersList.get('x-forwarded-for')
     const realIp = headersList.get('x-real-ip')
     const reqIp = headersList.get('x-client-ip') // Some proxies
-    
+
     const requestIp = forwardedFor ? forwardedFor.split(',')[0] : (realIp || reqIp || 'unknown')
-    
+
     const ip_hash = await hashIp(requestIp)
+
+    // Silently drop requests that exceed 30 events/min per IP.
+    // NOTE: this is per-process only. For multi-instance production,
+    // replace isRateLimited() with Upstash Redis rate limiting.
+    if (isRateLimited(ip_hash)) {
+      return new NextResponse(null, { status: 204 })
+    }
+
+    const supabase = await createClient()
     const user_agent = headersList.get('user-agent')
     const platform = detectPlatform(url)
 

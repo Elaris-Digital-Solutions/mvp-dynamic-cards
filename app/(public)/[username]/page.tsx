@@ -40,7 +40,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // 1. Fetch Profile STRICTLY
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, username, full_name, email, phone, whatsapp, job_title, company, bio, avatar_url, banner_url, template_id, is_active')
     .eq('username', username)
     .single() as any
 
@@ -52,7 +52,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // 2. Fetch active action buttons
   const { data: buttons } = await supabase
     .from('action_buttons')
-    .select('*')
+    .select('id, label, url, icon, sort_order')
     .eq('profile_id', profile.id)
     .eq('is_active', true)
     .order('sort_order', { ascending: true })

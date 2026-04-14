@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { revalidatePath } from 'next/cache'
+import { processNFCCardSchema, searchProfilesSchema } from '@/lib/validation/schemas'
 
 export async function updateUserStatus(userId: string, is_active: boolean) {
   const { user } = await requireAdmin()
@@ -59,12 +60,15 @@ export async function processNFCCard(formData: FormData) {
   const { user } = await requireAdmin()
   const supabase = await createClient()
 
-  const card_uid = (formData.get('card_uid') as string || '').trim()
-  const profile_id = (formData.get('profile_id') as string || '').trim() || null
-  const notes = (formData.get('notes') as string || '').trim() || null
-  const is_active = (formData.get('is_active') as string) === 'true'
+  const parsed = processNFCCardSchema.safeParse({
+    card_uid:   formData.get('card_uid'),
+    profile_id: formData.get('profile_id') || null,
+    notes:      formData.get('notes'),
+    is_active:  (formData.get('is_active') as string) === 'true',
+  })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
 
-  if (!card_uid) return { error: 'Card UID is required' }
+  const { card_uid, profile_id, notes, is_active } = parsed.data
 
   if (profile_id) {
     const { data: targetProfile } = await supabase.from('profiles').select('is_active').eq('id', profile_id).single()
@@ -113,12 +117,13 @@ export async function searchAdminProfiles(query: string) {
   const { user } = await requireAdmin()
   const supabase = await createClient()
 
-  if (!query || query.trim().length < 2) return { profiles: [] }
+  const parsed = searchProfilesSchema.safeParse({ query })
+  if (!parsed.success) return { profiles: [] }
 
   const { data, error } = await supabase
     .from('profiles')
     .select('id, username, full_name, is_active')
-    .ilike('username', `%${query}%`)
+    .ilike('username', `%${parsed.data.query}%`)
     .limit(10)
 
   if (error) {
