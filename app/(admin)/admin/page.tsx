@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/auth/requireAdmin'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { AdminPanel } from '@/components/admin/AdminPanel'
 import { Database } from '@/types/database'
 
@@ -14,7 +14,7 @@ type AdminNFCCard = Pick<
 
 export default async function AdminPage() {
   const { user, profile } = await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const [
     profilesResult,
