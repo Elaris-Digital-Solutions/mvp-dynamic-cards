@@ -1,7 +1,20 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { env } from '@/lib/utils/env'
 import { Database } from '@/types/database'
+
+/**
+ * Service role client — bypasses RLS entirely.
+ * Only use inside server actions already gated by requireAdmin().
+ */
+export function createServiceClient() {
+  return createSupabaseClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false } }
+  )
+}
 
 export async function createClient() {
   const cookieStore = await cookies()
