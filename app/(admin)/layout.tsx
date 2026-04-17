@@ -11,11 +11,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin" className="text-base font-medium tracking-[0.28em] uppercase text-foreground">
               VELTRIX
             </Link>
-            <span className="border-l border-border/40 h-4" />
-            <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
-              <Link href="/admin/users" className="hover:text-foreground transition-colors">Usuarios</Link>
-              <Link href="/admin/cards" className="hover:text-foreground transition-colors">Tarjetas NFC</Link>
-            </div>
           </div>
           <LogoutButton className="text-muted-foreground hover:text-foreground text-sm transition-colors" />
         </nav>
