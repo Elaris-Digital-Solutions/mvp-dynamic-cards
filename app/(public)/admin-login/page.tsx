@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { LoginForm } from '@/components/auth/login-form'
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter()
 
   const handleLogin = async (email: string, password: string) => {
@@ -31,11 +31,9 @@ export default function LoginPage() {
       if (profile?.role === 'admin') {
         router.push('/admin')
       } else {
-        router.push('/dashboard')
+        // Not an admin — send back to regular login
+        throw new Error('No tienes permisos de administrador.')
       }
-    } else {
-      router.refresh()
-      router.push('/dashboard')
     }
   }
 
@@ -56,7 +54,7 @@ export default function LoginPage() {
       </div>
 
       <div className="relative z-10 w-full py-8">
-        <LoginForm onLogin={handleLogin} />
+        <LoginForm onLogin={handleLogin} hideSignup />
       </div>
     </div>
   )

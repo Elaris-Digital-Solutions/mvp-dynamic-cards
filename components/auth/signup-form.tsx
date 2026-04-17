@@ -155,18 +155,18 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
             <div className="space-y-2">
               <Label htmlFor="cardUrl" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Enlace de tu perfil</Label>
               <div className="flex h-11 w-full rounded-lg border border-border/60 bg-background/55 backdrop-blur-sm overflow-hidden transition-colors focus-within:border-white/40">
-                <span className="flex items-center px-3 text-white/60 bg-white/5 border-r border-border/60 text-sm select-none">
+                <span className="flex items-center pl-4 text-white/40 text-sm select-none pointer-events-none">
                   veltrix.com/
                 </span>
                 <input
                   id="cardUrl"
                   type="text"
-                  placeholder="juan-perez"
+                  placeholder="tu-enlace"
                   value={cardUrl}
                   onChange={handleCardUrlChange}
                   required
                   disabled={isLoading}
-                  className="flex-1 px-3 bg-transparent text-white placeholder:text-white/50 outline-none w-full"
+                  className="flex-1 pl-0 pr-3 bg-transparent text-white placeholder:text-white/40 outline-none w-full"
                 />
               </div>
               <p className="text-[10px] text-white/60">Tu enlace único. Sin espacios ni caracteres especiales.</p>

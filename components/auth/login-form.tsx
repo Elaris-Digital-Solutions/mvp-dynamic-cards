@@ -17,11 +17,13 @@ interface LoginFormProps {
   onLogin?: (email: string, password: string) => Promise<void>
   /** Pass isLoading from your auth context to disable the form during sign-in */
   isLoading?: boolean
+  /** Hide the "¿No tienes cuenta?" link — use for admin-only login screens */
+  hideSignup?: boolean
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function LoginForm({ onLogin, isLoading: externalLoading = false }: LoginFormProps) {
+export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSignup = false }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -112,12 +114,14 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false }: Login
           </form>
 
           <div className="space-y-3 text-center text-sm pt-2 pb-0.5" style={pureWhiteStyle}>
-            <p style={pureWhiteStyle}>
-              ¿No tienes cuenta?{' '}
-              <Link href="/signup" className="font-semibold hover:underline" style={pureWhiteStyle}>
-                Crear cuenta
-              </Link>
-            </p>
+            {!hideSignup && (
+              <p style={pureWhiteStyle}>
+                ¿No tienes cuenta?{' '}
+                <Link href="/register" className="font-semibold hover:underline" style={pureWhiteStyle}>
+                  Crear cuenta
+                </Link>
+              </p>
+            )}
             <p>
               <Link href="/" className="hover:underline" style={pureWhiteStyle}>
                 Volver al inicio
