@@ -38,11 +38,12 @@ function normalizeIcon(icon: string): LinkIcon {
 
 type Props = {
   initialProfile: UIUserProfile
+  isAdmin?: boolean
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function DashboardClient({ initialProfile }: Props) {
+export default function DashboardClient({ initialProfile, isAdmin }: Props) {
   const { handleLogout } = useLogout()
 
   // ── Section state ──────────────────────────────────────────────────────────
@@ -167,11 +168,11 @@ export default function DashboardClient({ initialProfile }: Props) {
     setLinks((prev: EditableLink[]) => prev.filter((l: EditableLink) => l.id !== id))
   }
 
-  const addLink = () => {
+  const addLink = (data: { icon: LinkIcon; title: string; url: string }) => {
     if (links.length >= 6) return
     setLinks((prev: EditableLink[]) => [
       ...prev,
-      { id: crypto.randomUUID(), title: '', url: '', icon: 'website' },
+      { id: crypto.randomUUID(), ...data },
     ])
   }
 
@@ -244,6 +245,8 @@ export default function DashboardClient({ initialProfile }: Props) {
         onSectionChange={(s: string) => setActiveSection(s as DashboardSection)}
         userEmail={initialProfile.email}
         onLogout={handleLogout}
+        isAdmin={isAdmin}
+        username={initialProfile.username}
       />
 
       <main className="flex-1 overflow-auto bg-background p-4 md:p-6 animate-in slide-in-from-bottom-4 duration-700 ease-out delay-150 fill-mode-both">

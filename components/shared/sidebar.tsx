@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { LogOut, Home, User, Link as LinkIcon, LayoutGrid, Orbit } from 'lucide-react'
+import { LogOut, Home, User, Link as LinkIcon, LayoutGrid, Orbit, Shield } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,6 +18,10 @@ interface SidebarProps {
   onLogout?: () => void | Promise<void>
   /** Disables the logout button while a sign-out is in progress */
   isLoading?: boolean
+  /** Shows the admin panel link when the user has admin role */
+  isAdmin?: boolean
+  /** Username used to build the /[username] card link */
+  username?: string
 }
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
@@ -37,6 +41,8 @@ export function Sidebar({
   userEmail,
   onLogout,
   isLoading = false,
+  isAdmin = false,
+  username,
 }: SidebarProps) {
   return (
     <aside className="w-full md:w-72 border-b md:border-b-0 md:border-r border-border bg-background/50 backdrop-blur-sm flex flex-col md:h-screen md:sticky md:top-0">
@@ -71,12 +77,25 @@ export function Sidebar({
       </nav>
 
       <div className="p-3 border-t border-border space-y-2">
+        {isAdmin && (
+          <Button
+            asChild
+            variant="outline"
+            className="w-full justify-center h-11 md:h-9 rounded-xl md:rounded-md border-border/70 bg-background/70 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/15 hover:text-foreground active:translate-y-0"
+          >
+            <Link href="/admin">
+              <Shield className="w-4 h-4 mr-2" />
+              Panel Admin
+            </Link>
+          </Button>
+        )}
+
         <Button
           asChild
           variant="outline"
           className="w-full justify-center h-11 md:h-9 rounded-xl md:rounded-md border-border/70 bg-background/70 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/15 hover:text-foreground active:translate-y-0"
         >
-          <Link href="/card">
+          <Link href={username ? `/${username}` : '/card'}>
             <Orbit className="w-4 h-4 mr-2" />
             Mi tarjeta
           </Link>

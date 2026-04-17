@@ -51,17 +51,28 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    const appRole = user.app_metadata?.app_role as string | undefined
+    url.pathname = appRole === 'admin' ? '/admin' : '/dashboard'
     return NextResponse.redirect(url)
   }
 
   if (user && (isDashboardRoute || isAdminRoute)) {
-    // Read role and active status from JWT app_metadata.
-    // These are synced from the profiles table via the sync_profile_claims_to_jwt trigger,
-    // so no additional DB query is needed here. supabase.auth.getUser() above already
-    // fetches from the auth server (real-time), so app_metadata is always current.
-    const appRole     = user.app_metadata?.app_role as string | undefined
-    const appIsActive = user.app_metadata?.app_is_active as boolean | undefined
+    // Prefer JWT app_metadata claims (set by sync_profile_claims_to_jwt trigger).
+    // Fall back to a DB query when claims are absent (e.g. trigger hasn't run yet).
+    let appRole     = user.app_metadata?.app_role as string | undefined
+    let appIsActive = user.app_metadata?.app_is_active as boolean | undefined
+
+    if (appRole === undefined || appIsActive === undefined) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, is_active')
+        .eq('id', user.id)
+        .single()
+      if (profile) {
+        appRole     = appRole     ?? (profile.role as string)
+        appIsActive = appIsActive ?? (profile.is_active as boolean)
+      }
+    }
 
     if (!appIsActive) {
       const url = request.nextUrl.clone()

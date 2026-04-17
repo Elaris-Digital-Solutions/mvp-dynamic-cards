@@ -10,7 +10,8 @@
       "Bash(cmd /c \"dir /A \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\\" | findstr /i env\")",
       "Bash(cmd /c \"dir /ah \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\\"\")",
       "Bash(cmd /c \"mklink \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.claude\\\\worktrees\\\\elegant-newton\\\\.env\\\\\" \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.env\\\\\"\")",
-      "Bash(cmd /c \"copy \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.env\\\\\" \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.claude\\\\worktrees\\\\elegant-newton\\\\.env\\\\\"\")"
+      "Bash(cmd /c \"copy \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.env\\\\\" \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.claude\\\\worktrees\\\\elegant-newton\\\\.env\\\\\"\")",
+      "Bash(xargs grep *)"
     ]
   }
 }

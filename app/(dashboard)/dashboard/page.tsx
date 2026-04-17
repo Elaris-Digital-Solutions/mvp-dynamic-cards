@@ -17,7 +17,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex-1 w-full relative">
-      <DashboardClient initialProfile={userProfile} />
+      <DashboardClient initialProfile={userProfile} isAdmin={profile.role === 'admin'} />
     </div>
   )
 }
