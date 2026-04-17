@@ -1,12 +1,12 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { revalidatePath } from 'next/cache'
 
 export async function updateUserStatus(userId: string, is_active: boolean) {
   const { user } = await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   if (!userId) return { error: 'Missing user ID' }
 
@@ -16,13 +16,13 @@ export async function updateUserStatus(userId: string, is_active: boolean) {
     console.error("Admin action Supabase error:", error)
     return { error: `Database update failed: ${error.message}` }
   }
-  revalidatePath('/admin/users')
+  revalidatePath('/admin')
   return { success: true }
 }
 
 export async function updateUserExpiration(userId: string, dateStr: string | null) {
   const { user } = await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   if (!userId) return { error: 'Missing user ID' }
 
@@ -34,13 +34,13 @@ export async function updateUserExpiration(userId: string, dateStr: string | nul
     console.error("Admin action Supabase error:", error)
     return { error: `Database update failed: ${error.message}` }
   }
-  revalidatePath('/admin/users')
+  revalidatePath('/admin')
   return { success: true }
 }
 
 export async function updateUserRole(userId: string, role: 'user' | 'admin') {
   const { user } = await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   if (!userId) return { error: 'Missing user ID' }
   if (user.id === userId) return { error: 'Cannot alter your own role' }
@@ -51,13 +51,13 @@ export async function updateUserRole(userId: string, role: 'user' | 'admin') {
     console.error("Admin action Supabase error:", error)
     return { error: `Database update failed: ${error.message}` }
   }
-  revalidatePath('/admin/users')
+  revalidatePath('/admin')
   return { success: true }
 }
 
 export async function processNFCCard(formData: FormData) {
   const { user } = await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const card_uid = (formData.get('card_uid') as string || '').trim()
   const profile_id = (formData.get('profile_id') as string || '').trim() || null
@@ -72,10 +72,9 @@ export async function processNFCCard(formData: FormData) {
     if (!targetProfile.is_active) return { error: 'Target profile is legally inactive. Activate them first before hardware assignment.' }
   }
 
-  // Force strict overwrite logic cleanly
   const { error } = await (supabase.from('nfc_cards') as any).upsert({
     card_uid,
-    profile_id: profile_id || null, // Allow intentional unassign via blank dropdown
+    profile_id: profile_id || null,
     notes,
     is_active,
     assigned_at: profile_id ? new Date().toISOString() : null
@@ -83,35 +82,35 @@ export async function processNFCCard(formData: FormData) {
 
   if (error) return { error: 'Failed to process NFC Card mapping. Check logic bounds.' }
 
-  revalidatePath('/admin/cards')
+  revalidatePath('/admin')
   return { success: true }
 }
 
 export async function toggleNFCCard(id: string, is_active: boolean) {
   const { user } = await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { error } = await (supabase.from('nfc_cards') as any).update({ is_active }).eq('id', id)
   if (error) return { error: 'Failed to toggle NFC hardware state.' }
 
-  revalidatePath('/admin/cards')
+  revalidatePath('/admin')
   return { success: true }
 }
 
 export async function deleteNFCCard(id: string) {
   const { user } = await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { error } = await supabase.from('nfc_cards').delete().eq('id', id)
   if (error) return { error: 'Failed to purge NFC card bounds.' }
 
-  revalidatePath('/admin/cards')
+  revalidatePath('/admin')
   return { success: true }
 }
 
 export async function searchAdminProfiles(query: string) {
   const { user } = await requireAdmin()
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   if (!query || query.trim().length < 2) return { profiles: [] }
 
