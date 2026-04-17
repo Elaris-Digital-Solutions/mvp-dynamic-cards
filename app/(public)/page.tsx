@@ -2,6 +2,12 @@ import Link from 'next/link'
 import { Header } from '@/components/shared/header'
 import { NFCBadge } from '@/components/shared/nfc-badge'
 import { Button } from '@/components/ui/button'
+import { ProblemSection } from '@/components/landing/ProblemSection'
+import { HowItWorksSection } from '@/components/landing/HowItWorksSection'
+import { FeaturesSection } from '@/components/landing/FeaturesSection'
+import { ImpactSection } from '@/components/landing/ImpactSection'
+import { CTASection } from '@/components/landing/CTASection'
+import { Footer } from '@/components/landing/Footer'
 
 export default function Home() {
   return (
@@ -10,6 +16,7 @@ export default function Home() {
         <Header />
       </div>
 
+      {/* Hero */}
       <main className="relative isolate flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-5 sm:px-4 overflow-hidden">
         <div
           aria-hidden
@@ -48,6 +55,14 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Landing sections */}
+      <div id="problema"><ProblemSection /></div>
+      <div id="como-funciona"><HowItWorksSection /></div>
+      <div id="caracteristicas"><FeaturesSection /></div>
+      <ImpactSection />
+      <CTASection />
+      <Footer />
     </div>
   )
 }

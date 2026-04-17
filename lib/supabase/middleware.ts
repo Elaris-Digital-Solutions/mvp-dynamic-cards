@@ -33,13 +33,19 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register') || request.nextUrl.pathname.startsWith('/admin-login')
   const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin-login')
 
-  if (!user && (isDashboardRoute || isAdminRoute)) {
+  if (!user && isDashboardRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  if (!user && isAdminRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/admin-login'
     return NextResponse.redirect(url)
   }
 
