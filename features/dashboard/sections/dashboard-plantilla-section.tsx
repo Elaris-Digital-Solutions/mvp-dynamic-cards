@@ -61,7 +61,7 @@ export function DashboardPlantillaSection({
         {(Object.entries(TEMPLATES) as Array<[string, (typeof TEMPLATES)[keyof typeof TEMPLATES]]>).map(
           ([id, template]) => {
             const isSelected = selectedTemplate === id
-            const isLight = template.textStyle === 'dark'
+            const isLight = (template.textStyle as string) === 'dark'
             return (
               <div
                 key={id}

@@ -18,7 +18,7 @@ interface LinktreeCardProps {
    */
   profile: Pick<
     UserProfile,
-    'name' | 'title' | 'company' | 'bio' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
+    'id' | 'name' | 'title' | 'company' | 'bio' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
   >
 }
 
@@ -47,7 +47,7 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
     link: <Globe className="w-5 h-5" />,
   }
 
-  const isLightTemplate = template.textStyle === 'dark'
+  const isLightTemplate = (template.textStyle as string) === 'dark'
   const visibleLinks = profile.links?.slice(0, 6) ?? []
 
   const handleLinkClick = (link: { id: string; title: string; url: string }) => {

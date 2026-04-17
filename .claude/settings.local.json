@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npx tsc *)",
+      "Bash(cmd /c mklink /J \"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.claude\\\\worktrees\\\\elegant-newton\\\\node_modules\" \"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\node_modules\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('package.json'\\)\\); print\\(list\\(d.get\\('dependencies',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(dir /A \"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\")",
+      "Bash(findstr /i env)",
+      "Bash(cmd /c \"dir /A \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\\" | findstr /i env\")",
+      "Bash(cmd /c \"dir /ah \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\\"\")",
+      "Bash(cmd /c \"mklink \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.claude\\\\worktrees\\\\elegant-newton\\\\.env\\\\\" \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.env\\\\\"\")",
+      "Bash(cmd /c \"copy \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.env\\\\\" \\\\\"C:\\\\Users\\\\Alejandro\\\\Desktop\\\\Elaris\\\\mvp-dynamic-cards\\\\.claude\\\\worktrees\\\\elegant-newton\\\\.env\\\\\"\")"
+    ]
+  }
+}

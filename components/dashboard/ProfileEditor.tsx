@@ -36,7 +36,7 @@ export function ProfileEditor({ profile }: { profile: Profile }) {
 
     startTransition(async () => {
       const res = await updateProfile(formData)
-      if (res?.error) {
+      if ('error' in res) {
         setMessage({ type: 'error', text: res.error })
       } else {
         setMessage({ type: 'success', text: 'Profile updated successfully.' })

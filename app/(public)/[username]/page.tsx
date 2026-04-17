@@ -83,5 +83,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const uiProfile = dbProfileToUIProfile(profile, buttons || [])
 
   // 5. Production Render
-  return <LinktreeCard profile={uiProfile} />
+  // selectedTemplate is widened to string by the adapter — cast to the known literal union
+  const typedProfile = {
+    ...uiProfile,
+    id: uiProfile.id,
+    selectedTemplate: uiProfile.selectedTemplate as 'minimal-black' | undefined,
+  }
+  return <LinktreeCard profile={typedProfile} />
 }
