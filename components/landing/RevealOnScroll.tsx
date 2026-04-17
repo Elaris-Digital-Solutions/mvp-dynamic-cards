@@ -1,6 +1,12 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useLayoutEffect, useEffect, useState } from 'react'
+
+// useLayoutEffect fires synchronously before paint on the client.
+// On the server it's a no-op (React skips it), so we fall back to useEffect
+// to avoid the SSR warning — effects don't run server-side anyway.
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
 interface RevealOnScrollProps {
   children: React.ReactNode
@@ -18,9 +24,20 @@ export function RevealOnScroll({
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const el = ref.current
     if (!el) return
+
+    // Immediately reveal if the element is already in (or near) the viewport.
+    // This handles client-side navigation and back-button restores where the
+    // browser paints before useEffect would normally fire.
+    const { top, bottom } = el.getBoundingClientRect()
+    if (top < window.innerHeight && bottom > 0) {
+      setVisible(true)
+      return
+    }
+
+    // Element is below the fold — observe it and reveal on scroll.
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
