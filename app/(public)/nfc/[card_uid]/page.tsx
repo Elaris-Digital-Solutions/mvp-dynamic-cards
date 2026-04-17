@@ -15,7 +15,7 @@ export default async function NFCForwarderPage({ params }: Props) {
     .from('nfc_cards')
     .select('is_active, profile_id')
     .eq('card_uid', card_uid)
-    .single()
+    .single() as { data: { is_active: boolean; profile_id: string | null } | null, error: unknown }
 
   // Mask existence entirely if card not mapped or explicitly disabled via admin
   if (!card || !card.is_active || !card.profile_id) {
@@ -26,7 +26,7 @@ export default async function NFCForwarderPage({ params }: Props) {
     .from('profiles')
     .select('username, is_active')
     .eq('id', card.profile_id)
-    .single()
+    .single() as { data: { username: string; is_active: boolean } | null, error: unknown }
 
   // Ensure targeted profiles are securely active locally before continuing proxy
   if (!profile || !profile.is_active) {

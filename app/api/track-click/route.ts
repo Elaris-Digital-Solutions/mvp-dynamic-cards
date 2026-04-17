@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     // To prevent Next.js from killing the process before the TCP string is sent to Supabase,
     // we must await the insertion. It only takes ~50ms and prevents context termination.
-    const { error } = await supabase.from('click_events').insert({
+    const { error } = await supabase.from('click_events' as any).insert({
       profile_id,
       button_id: button_id || null,
       event_type: 'button_click',
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       platform,
       url,
       button_label: label
-    })
+    } as any)
 
     if (error) {
       console.error("Insert error details:", error)

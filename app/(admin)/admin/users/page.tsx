@@ -15,8 +15,8 @@ export default async function AdminUsersPage() {
   return (
     <div className="max-w-[1400px]">
       <div className="mb-6 flex flex-col space-y-1">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">User Operations Data</h1>
-        <p className="text-gray-500 text-sm">Control access lifecycles securely dynamically across bounds.</p>
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">Usuarios</h1>
+        <p className="text-muted-foreground text-sm">Gestiona los accesos y ciclos de vida de los usuarios.</p>
       </div>
       <UserTable profiles={profiles || []} currentUserId={user.id} />
     </div>

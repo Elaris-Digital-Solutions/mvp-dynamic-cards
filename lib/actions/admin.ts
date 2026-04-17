@@ -10,7 +10,7 @@ export async function updateUserStatus(userId: string, is_active: boolean) {
 
   if (!userId) return { error: 'Missing user ID' }
 
-  const { error } = await supabase.from('profiles').update({ is_active }).eq('id', userId)
+  const { error } = await (supabase.from('profiles') as any).update({ is_active }).eq('id', userId)
 
   if (error) {
     console.error("Admin action Supabase error:", error)
@@ -28,7 +28,7 @@ export async function updateUserExpiration(userId: string, dateStr: string | nul
 
   const parsedDate = dateStr ? new Date(dateStr).toISOString() : null
 
-  const { error } = await supabase.from('profiles').update({ service_expires_at: parsedDate }).eq('id', userId)
+  const { error } = await (supabase.from('profiles') as any).update({ service_expires_at: parsedDate }).eq('id', userId)
 
   if (error) {
     console.error("Admin action Supabase error:", error)
@@ -45,7 +45,7 @@ export async function updateUserRole(userId: string, role: 'user' | 'admin') {
   if (!userId) return { error: 'Missing user ID' }
   if (user.id === userId) return { error: 'Cannot alter your own role' }
 
-  const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
+  const { error } = await (supabase.from('profiles') as any).update({ role }).eq('id', userId)
 
   if (error) {
     console.error("Admin action Supabase error:", error)
@@ -67,13 +67,13 @@ export async function processNFCCard(formData: FormData) {
   if (!card_uid) return { error: 'Card UID is required' }
 
   if (profile_id) {
-    const { data: targetProfile } = await supabase.from('profiles').select('is_active').eq('id', profile_id).single()
+    const { data: targetProfile } = await (supabase.from('profiles') as any).select('is_active').eq('id', profile_id).single() as { data: { is_active: boolean } | null, error: unknown }
     if (!targetProfile) return { error: 'Target profile not found' }
     if (!targetProfile.is_active) return { error: 'Target profile is legally inactive. Activate them first before hardware assignment.' }
   }
 
   // Force strict overwrite logic cleanly
-  const { error } = await supabase.from('nfc_cards').upsert({
+  const { error } = await (supabase.from('nfc_cards') as any).upsert({
     card_uid,
     profile_id: profile_id || null, // Allow intentional unassign via blank dropdown
     notes,
@@ -91,7 +91,7 @@ export async function toggleNFCCard(id: string, is_active: boolean) {
   const { user } = await requireAdmin()
   const supabase = await createClient()
 
-  const { error } = await supabase.from('nfc_cards').update({ is_active }).eq('id', id)
+  const { error } = await (supabase.from('nfc_cards') as any).update({ is_active }).eq('id', id)
   if (error) return { error: 'Failed to toggle NFC hardware state.' }
 
   revalidatePath('/admin/cards')
@@ -125,6 +125,6 @@ export async function searchAdminProfiles(query: string) {
     console.error("Admin user search Supabase error:", error)
     return { error: `Search failed: ${error.message}` }
   }
-  
+
   return { profiles: data || [] }
 }
