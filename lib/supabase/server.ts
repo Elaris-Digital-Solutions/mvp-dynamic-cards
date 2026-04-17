@@ -7,11 +7,15 @@ import { Database } from '@/types/database'
 /**
  * Service role client — bypasses RLS entirely.
  * Only use inside server actions already gated by requireAdmin().
+ * Reads SUPABASE_SERVICE_ROLE_KEY directly from process.env (server-only,
+ * never exposed to the client bundle).
  */
 export function createServiceClient() {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceRoleKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set')
   return createSupabaseClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY,
+    serviceRoleKey,
     { auth: { persistSession: false } }
   )
 }
