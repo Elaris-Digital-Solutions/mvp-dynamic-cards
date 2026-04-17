@@ -30,5 +30,18 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "components/ui/calendar.tsx",
+    "components/ui/carousel.tsx",
+    "components/ui/chart.tsx",
+    "components/ui/command.tsx",
+    "components/ui/drawer.tsx",
+    "components/ui/form.tsx",
+    "components/ui/input-otp.tsx",
+    "components/ui/resizable.tsx",
+    "components/ui/sidebar.tsx",
+    "components/ui/sonner.tsx",
+    "components/ui/toaster.tsx"
+  ]
 }
