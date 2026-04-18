@@ -66,7 +66,7 @@ export async function processNFCCard(formData: FormData) {
     notes:      formData.get('notes'),
     is_active:  (formData.get('is_active') as string) === 'true',
   })
-  if (!parsed.success) return { error: parsed.error.errors[0].message }
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
 
   const { card_uid, profile_id, notes, is_active } = parsed.data
 
