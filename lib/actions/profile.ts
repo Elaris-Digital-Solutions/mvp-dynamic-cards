@@ -36,7 +36,7 @@ export async function updateProfile(
     avatar_url: formData.get('avatar_url'),
     banner_url: formData.get('banner_url'),
   })
-  if (!parsed.success) return { error: parsed.error.errors[0].message }
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
 
   const { full_name, job_title, company, bio, phone, avatar_url, banner_url } = parsed.data
   const whatsapp = parsed.data.whatsapp || phone
