@@ -67,10 +67,10 @@ export async function updateSession(request: NextRequest) {
         .from('profiles')
         .select('role, is_active')
         .eq('id', user.id)
-        .single()
+        .single() as unknown as { data: { role: string; is_active: boolean } | null, error: unknown }
       if (profile) {
-        appRole     = appRole     ?? (profile.role as string)
-        appIsActive = appIsActive ?? (profile.is_active as boolean)
+        appRole     = appRole     ?? profile.role
+        appIsActive = appIsActive ?? profile.is_active
       }
     }
 
