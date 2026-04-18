@@ -8,7 +8,8 @@ interface Props {
 }
 
 export default async function NFCForwarderPage({ params }: Props) {
-  const { card_uid } = await params
+  const { card_uid: rawUid } = await params
+  const card_uid = decodeURIComponent(rawUid).replace(/[:\-\s]/g, '').toUpperCase()
   const supabase = await createClient()
 
   const { data: card } = await supabase

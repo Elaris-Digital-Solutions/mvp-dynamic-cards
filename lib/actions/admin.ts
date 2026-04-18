@@ -60,8 +60,11 @@ export async function processNFCCard(formData: FormData) {
   const { user } = await requireAdmin()
   const supabase = createServiceClient()
 
+  const rawUid = (formData.get('card_uid') as string | null) ?? ''
+  const normalizedUid = rawUid.replace(/[:\-\s]/g, '').toUpperCase()
+
   const parsed = processNFCCardSchema.safeParse({
-    card_uid:   formData.get('card_uid'),
+    card_uid:   normalizedUid,
     profile_id: formData.get('profile_id') || null,
     notes:      formData.get('notes'),
     is_active:  (formData.get('is_active') as string) === 'true',
