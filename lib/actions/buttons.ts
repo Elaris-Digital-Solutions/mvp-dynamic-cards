@@ -37,7 +37,7 @@ export async function createButton(formData: FormData) {
     url:   formData.get('url'),
     icon:  formData.get('icon'),
   })
-  if (!parsed.success) return { error: parsed.error.errors[0].message }
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
 
   const { id, label, url, icon } = parsed.data
 
@@ -85,7 +85,7 @@ export async function updateButton(id: string, formData: FormData) {
     url:   formData.get('url'),
     icon:  formData.get('icon'),
   })
-  if (!parsed.success) return { error: parsed.error.errors[0].message }
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
 
   const { label, url, icon } = parsed.data
 
