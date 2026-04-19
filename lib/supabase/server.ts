@@ -5,6 +5,19 @@ import { env } from '@/lib/utils/env'
 import { Database } from '@/types/database'
 
 /**
+ * Anon client with no cookie dependency — safe for use in ISR/static pages.
+ * Does not call cookies(), so Next.js won't opt the route into dynamic rendering.
+ * Only use for public data protected by RLS (anon role must have SELECT access).
+ */
+export function createPublicClient() {
+  return createSupabaseClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } }
+  )
+}
+
+/**
  * Service role client — bypasses RLS entirely.
  * Only use inside server actions already gated by requireAdmin().
  * Reads SUPABASE_SERVICE_ROLE_KEY directly from process.env (server-only,

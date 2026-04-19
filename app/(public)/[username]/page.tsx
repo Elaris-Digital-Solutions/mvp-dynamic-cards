@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/server'
 import { LinktreeCard } from '@/components/card/linktree-card'
 import { dbProfileToUIProfile } from '@/lib/utils/adapters'
 
@@ -14,7 +14,7 @@ interface ProfilePageProps {
 }
 
 const getProfileData = cache(async (username: string) => {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const { data: profile } = await supabase
     .from('profiles')
