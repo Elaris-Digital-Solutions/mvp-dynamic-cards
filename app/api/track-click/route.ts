@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { profile_id, button_id, url, label, event_type: rawEventType } = body
 
-    const allowed = new Set(['button_click', 'vcf_download', 'whatsapp_click'])
+    const allowed = new Set(['button_click', 'vcf_download', 'whatsapp_click', 'page_view'])
     const event_type = allowed.has(rawEventType) ? rawEventType : 'button_click'
 
     if (!profile_id) {
