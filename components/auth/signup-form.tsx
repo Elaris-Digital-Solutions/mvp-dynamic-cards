@@ -55,6 +55,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
       setUsernameError('')
       setSuggestions([])
       setIsValidatingUsername(false)
+      setIsUsernameAvailable(false)
       return
     }
 
