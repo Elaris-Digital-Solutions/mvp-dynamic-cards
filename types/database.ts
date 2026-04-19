@@ -116,6 +116,8 @@ export interface Database {
           id: string
           username: string
           full_name: string | null
+          first_name: string | null
+          last_name: string | null
           job_title: string | null
           company: string | null
           email: string | null
@@ -135,6 +137,8 @@ export interface Database {
           id: string
           username: string
           full_name?: string | null
+          first_name?: string | null
+          last_name?: string | null
           job_title?: string | null
           company?: string | null
           email?: string | null
@@ -154,6 +158,8 @@ export interface Database {
           id?: string
           username?: string
           full_name?: string | null
+          first_name?: string | null
+          last_name?: string | null
           job_title?: string | null
           company?: string | null
           email?: string | null

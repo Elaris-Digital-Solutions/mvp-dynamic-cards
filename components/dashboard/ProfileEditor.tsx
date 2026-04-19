@@ -75,9 +75,15 @@ export function ProfileEditor({ profile }: { profile: Profile }) {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Full Name</label>
-          <input name="full_name" defaultValue={profile.full_name || ''} className="w-full border p-2 rounded focus:ring-1 focus:ring-blue-500" />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Nombres</label>
+            <input name="first_name" defaultValue={profile.first_name || ''} className="w-full border p-2 rounded focus:ring-1 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Apellidos</label>
+            <input name="last_name" defaultValue={profile.last_name || ''} className="w-full border p-2 rounded focus:ring-1 focus:ring-blue-500" />
+          </div>
         </div>
         
         <div>

@@ -1,5 +1,6 @@
 interface VCardContact {
-  name: string
+  firstName: string
+  lastName: string
   title?: string
   company?: string
   phone?: string
@@ -23,12 +24,8 @@ function normalizePhone(raw: string): string {
 }
 
 export function generateVCard(contact: VCardContact): string {
-  const { name, title, company, phone, whatsapp, email } = contact
-
-  // Split "Juan Carlos Pérez" → last="Pérez", first="Juan Carlos" for sorting in contacts apps
-  const parts = name.trim().split(/\s+/)
-  const lastName = parts.length > 1 ? escapeField(parts[parts.length - 1]) : ''
-  const firstName = escapeField(parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0])
+  const { firstName, lastName, title, company, phone, whatsapp, email } = contact
+  const fullName = [firstName, lastName].filter(Boolean).join(' ')
 
   // Prefer whatsapp field — more likely to carry the international +prefix needed for auto-linking
   const rawPhone = whatsapp || phone
@@ -37,8 +34,8 @@ export function generateVCard(contact: VCardContact): string {
   const lines: string[] = [
     'BEGIN:VCARD',
     'VERSION:3.0',
-    `FN:${escapeField(name)}`,
-    `N:${lastName};${firstName};;;`,
+    `FN:${escapeField(fullName)}`,
+    `N:${escapeField(lastName)};${escapeField(firstName)};;;`,
   ]
 
   if (company) lines.push(`ORG:${escapeField(company)}`)

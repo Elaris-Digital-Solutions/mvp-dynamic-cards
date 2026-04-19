@@ -49,7 +49,8 @@ export const updateButtonSchema = z.object({
 // ─── Profile schemas ──────────────────────────────────────────────────────────
 
 export const updateProfileSchema = z.object({
-  full_name:  safeText(100).nullable().optional(),
+  first_name: safeText(60).nullable().optional(),
+  last_name:  safeText(60).nullable().optional(),
   job_title:  safeText(100).nullable().optional(),
   company:    safeText(100).nullable().optional(),
   bio:        safeText(500).nullable().optional(),

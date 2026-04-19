@@ -51,7 +51,8 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
 
   // ── Profile form state ─────────────────────────────────────────────────────
   const [profileForm, setProfileForm] = useState<ProfileFormState>({
-    name: initialProfile.name,
+    firstName: initialProfile.firstName,
+    lastName: initialProfile.lastName,
     title: initialProfile.title ?? '',
     company: initialProfile.company ?? '',
     email: initialProfile.email,
@@ -90,7 +91,8 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
     setProfileStatus({ state: 'saving', message: 'Guardando cambios de perfil...' })
 
     const formData = new FormData()
-    formData.append('full_name', profileForm.name)
+    formData.append('first_name', profileForm.firstName)
+    formData.append('last_name', profileForm.lastName)
     formData.append('job_title', profileForm.title)
     formData.append('company', profileForm.company)
     formData.append('bio', profileForm.bio)

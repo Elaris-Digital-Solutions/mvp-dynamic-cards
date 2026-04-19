@@ -16,7 +16,7 @@ interface SignupFormProps {
    * Example: const { signup } = useAuth()
    *          <SignupForm onSignup={signup} />
    */
-  onSignup?: (name: string, email: string, password: string, username: string) => Promise<void>
+  onSignup?: (firstName: string, lastName: string, email: string, password: string, username: string) => Promise<void>
   /** Pass isLoading from your auth context to disable the form during sign-up */
   isLoading?: boolean
 }
@@ -25,7 +25,8 @@ interface SignupFormProps {
 
 export function SignupForm({ onSignup, isLoading: externalLoading = false }: SignupFormProps) {
   const router = useRouter()
-  const [name, setName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [cardUrl, setCardUrl] = useState('')
@@ -37,7 +38,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(false)
 
   const isLoading = externalLoading || internalLoading
-  const isSubmitDisabled = isLoading || isValidatingUsername || !!usernameError || !name.trim() || !email.trim() || !password.trim() || !cardUrl.trim()
+  const isSubmitDisabled = isLoading || isValidatingUsername || !!usernameError || !firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !cardUrl.trim()
   const pureWhiteStyle = { color: '#ffffff', opacity: 1, WebkitTextFillColor: '#ffffff' }
 
   const handleCardUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,7 +102,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
       }
 
       if (onSignup) {
-        await onSignup(name.trim(), email.trim(), password, cardUrl.trim())
+        await onSignup(firstName.trim(), lastName.trim(), email.trim(), password, cardUrl.trim())
       }
       // Default mock behavior: navigate to dashboard
       // Note: the component routing handles dashboard via handleSignup
@@ -137,19 +138,35 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
           </div>
 
           <form onSubmit={onSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Nombre completo</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Tu nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoComplete="name"
-                disabled={isLoading}
-                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Nombres</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="Juan Carlos"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  autoComplete="given-name"
+                  disabled={isLoading}
+                  className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Apellidos</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="García López"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  autoComplete="family-name"
+                  disabled={isLoading}
+                  className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

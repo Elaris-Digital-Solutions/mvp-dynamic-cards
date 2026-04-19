@@ -121,7 +121,7 @@ export function DashboardPerfilSection({
           <Avatar className="absolute z-20 -bottom-0 left-10 h-20 w-20 rounded-xl border-4 border-background shadow-xl">
             <AvatarImage src={profileForm.profileImage || undefined} />
             <AvatarFallback className="rounded-xl text-lg font-bold bg-white text-black">
-              {profileForm.name?.charAt(0) || 'U'}
+              {profileForm.firstName?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>
         </div>
@@ -132,8 +132,12 @@ export function DashboardPerfilSection({
         <p className="text-sm tracking-[0.2em] uppercase font-semibold">Informacion de contacto</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="name">Nombre completo</Label>
-            <Input id="name" value={profileForm.name} onChange={(e) => setProfileForm((prev) => ({ ...prev, name: e.target.value }))} />
+            <Label htmlFor="firstName">Nombres</Label>
+            <Input id="firstName" value={profileForm.firstName} onChange={(e) => setProfileForm((prev) => ({ ...prev, firstName: e.target.value }))} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Apellidos</Label>
+            <Input id="lastName" value={profileForm.lastName} onChange={(e) => setProfileForm((prev) => ({ ...prev, lastName: e.target.value }))} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="title">Cargo</Label>

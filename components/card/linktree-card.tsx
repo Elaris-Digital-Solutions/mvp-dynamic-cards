@@ -19,7 +19,7 @@ interface LinktreeCardProps {
    */
   profile: Pick<
     UserProfile,
-    'id' | 'name' | 'title' | 'company' | 'bio' | 'email' | 'phone' | 'whatsapp' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
+    'id' | 'name' | 'firstName' | 'lastName' | 'title' | 'company' | 'bio' | 'email' | 'phone' | 'whatsapp' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
   >
 }
 
@@ -73,7 +73,8 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
 
   const handleVcfDownload = () => {
     const vcf = generateVCard({
-      name: profile.name,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
       title: profile.title,
       company: profile.company,
       phone: profile.phone,
@@ -85,7 +86,7 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `${profile.name.replace(/\s+/g, '_')}.vcf`
+    anchor.download = `${profile.firstName}_${profile.lastName}.vcf`.replace(/\s+/g, '_')
     document.body.appendChild(anchor)
     anchor.click()
     document.body.removeChild(anchor)

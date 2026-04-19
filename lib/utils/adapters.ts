@@ -34,6 +34,8 @@ export type UIUserProfile = {
   id: string
   username?: string
   name: string
+  firstName: string
+  lastName: string
   email: string
   phone?: string
   whatsapp?: string
@@ -88,10 +90,14 @@ export function dbProfileToUIProfile(
   profile: DBProfile,
   buttons: DBButton[] = []
 ): UIUserProfile {
+  const firstName = profile.first_name ?? ''
+  const lastName = profile.last_name ?? ''
   return {
     id: profile.id,
     username: profile.username,
-    name: profile.full_name ?? '',
+    firstName,
+    lastName,
+    name: [firstName, lastName].filter(Boolean).join(' ') || (profile.full_name ?? ''),
     email: profile.email ?? '',
     phone: profile.phone ?? undefined,
     whatsapp: profile.whatsapp ?? undefined,

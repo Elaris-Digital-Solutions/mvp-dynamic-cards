@@ -12,7 +12,7 @@ import { updateProfileSchema } from '@/lib/validation/schemas'
  * Updates all editable profile fields from a FormData payload.
  *
  * Accepted FormData keys (all optional):
- *   full_name, job_title, company, bio, phone, whatsapp, avatar_url, banner_url
+ *   first_name, last_name, job_title, company, bio, phone, whatsapp, avatar_url, banner_url
  *
  * Security:
  *   - Requires an active, authenticated user (via requireActiveUser).
@@ -27,7 +27,8 @@ export async function updateProfile(
   const supabase = await createClient()
 
   const parsed = updateProfileSchema.safeParse({
-    full_name:  formData.get('full_name'),
+    first_name: formData.get('first_name'),
+    last_name:  formData.get('last_name'),
     job_title:  formData.get('job_title'),
     company:    formData.get('company'),
     bio:        formData.get('bio'),
@@ -38,7 +39,7 @@ export async function updateProfile(
   })
   if (!parsed.success) return { error: parsed.error.issues[0].message }
 
-  const { full_name, job_title, company, bio, phone, avatar_url, banner_url } = parsed.data
+  const { first_name, last_name, job_title, company, bio, phone, avatar_url, banner_url } = parsed.data
   const whatsapp = parsed.data.whatsapp || phone
 
   // Cast required: Supabase's postgrest generic chain infers update() param as
@@ -47,7 +48,8 @@ export async function updateProfile(
   const { error } = await (supabase as any)
     .from('profiles')
     .update({
-      full_name,
+      first_name,
+      last_name,
       job_title,
       company,
       bio,

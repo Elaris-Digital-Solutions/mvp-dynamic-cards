@@ -28,6 +28,8 @@ export type UserProfile = {
   id: string
   username?: string
   name: string
+  firstName: string
+  lastName: string
   email: string
   phone?: string
   whatsapp?: string
@@ -41,7 +43,8 @@ export type UserProfile = {
 }
 
 export type ProfileFormState = {
-  name: string
+  firstName: string
+  lastName: string
   title: string
   company: string
   email: string

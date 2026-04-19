@@ -7,7 +7,7 @@ import { SignupForm } from '@/components/auth/signup-form'
 export default function RegisterPage() {
   const router = useRouter()
 
-  const handleSignup = async (name: string, email: string, password: string, username: string) => {
+  const handleSignup = async (firstName: string, lastName: string, email: string, password: string, username: string) => {
     if (!username) {
       throw new Error('El nombre de usuario es requerido para tu tarjeta.')
     }
@@ -19,7 +19,9 @@ export default function RegisterPage() {
       options: {
         data: {
           username,
-          full_name: name
+          first_name: firstName,
+          last_name: lastName,
+          full_name: [firstName, lastName].filter(Boolean).join(' '),
         }
       }
     })
