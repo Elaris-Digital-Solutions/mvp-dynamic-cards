@@ -80,7 +80,7 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
                 required
                 autoComplete="email"
                 disabled={isLoading}
-                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
+                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
               />
             </div>
 
@@ -96,7 +96,7 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
                 minLength={8}
                 autoComplete="current-password"
                 disabled={isLoading}
-                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
+                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
               />
             </div>
 

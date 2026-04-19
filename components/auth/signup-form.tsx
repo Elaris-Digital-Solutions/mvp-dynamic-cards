@@ -151,7 +151,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                   required
                   autoComplete="given-name"
                   disabled={isLoading}
-                  className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
+                  className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
                 />
               </div>
               <div className="space-y-2">
@@ -165,7 +165,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                   required
                   autoComplete="family-name"
                   disabled={isLoading}
-                  className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
+                  className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
                 />
               </div>
             </div>
@@ -173,7 +173,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
             <div className="space-y-2">
               <Label htmlFor="cardUrl" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Enlace de tu perfil</Label>
               <div className="flex h-11 w-full rounded-lg border border-border/60 bg-background/55 backdrop-blur-sm overflow-hidden transition-colors focus-within:border-white/40">
-                <span className="flex items-center pl-4 text-white/40 text-sm select-none pointer-events-none">
+                <span className="flex items-center px-3 text-white/50 text-sm select-none pointer-events-none bg-white/10 border-r border-border/60 shrink-0">
                   veltrix.com/
                 </span>
                 <input
@@ -184,7 +184,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                   onChange={handleCardUrlChange}
                   required
                   disabled={isLoading}
-                  className="flex-1 pl-0 pr-3 bg-transparent text-white placeholder:text-white/40 outline-none w-full"
+                  className="flex-1 pl-3 pr-3 bg-transparent text-white placeholder:text-white/40 outline-none w-full"
                 />
               </div>
               <p className="text-[10px] text-white/60">Tu enlace único. Sin espacios ni caracteres especiales.</p>
@@ -234,7 +234,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                 required
                 autoComplete="email"
                 disabled={isLoading}
-                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
+                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
               />
             </div>
 
@@ -250,7 +250,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                 minLength={8}
                 autoComplete="new-password"
                 disabled={isLoading}
-                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white placeholder:opacity-100 caret-white"
+                className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
               />
             </div>
 
