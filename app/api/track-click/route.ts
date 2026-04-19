@@ -8,7 +8,10 @@ import { isRateLimited } from '@/lib/utils/rateLimiter'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { profile_id, button_id, url, label } = body
+    const { profile_id, button_id, url, label, event_type: rawEventType } = body
+
+    const allowed = new Set(['button_click', 'vcf_download', 'whatsapp_click'])
+    const event_type = allowed.has(rawEventType) ? rawEventType : 'button_click'
 
     if (!profile_id) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
@@ -41,7 +44,7 @@ export async function POST(req: Request) {
     const { error } = await supabase.from('click_events' as any).insert({
       profile_id,
       button_id: button_id || null,
-      event_type: 'button_click',
+      event_type,
       user_agent,
       ip_hash,
       platform,

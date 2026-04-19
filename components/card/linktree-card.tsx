@@ -8,6 +8,7 @@ import { montserrat } from '@/lib/fonts'
 import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
 import { Download, ExternalLink, Globe, MessageCircle } from 'lucide-react'
 import type { UserProfile } from '@/types/ui.types'
+import { generateVCard } from '@/lib/utils/generate-vcard'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,7 +19,7 @@ interface LinktreeCardProps {
    */
   profile: Pick<
     UserProfile,
-    'id' | 'name' | 'title' | 'company' | 'bio' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
+    'id' | 'name' | 'title' | 'company' | 'bio' | 'email' | 'phone' | 'whatsapp' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
   >
 }
 
@@ -52,9 +53,9 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
 
   const handleLinkClick = (link: { id: string; title: string; url: string }) => {
     if (!profile.id) return;
-    
-    const payload = JSON.stringify({ 
-      profile_id: profile.id, 
+
+    const payload = JSON.stringify({
+      profile_id: profile.id,
       button_id: link.id,
       url: link.url,
       label: link.title
@@ -68,6 +69,36 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
         keepalive: true
       }).catch(err => console.error("Tracking fetch failed", err))
     } catch (err) {}
+  }
+
+  const handleVcfDownload = () => {
+    const vcf = generateVCard({
+      name: profile.name,
+      title: profile.title,
+      company: profile.company,
+      phone: profile.phone,
+      whatsapp: profile.whatsapp,
+      email: profile.email,
+    })
+
+    const blob = new Blob([vcf], { type: 'text/vcard;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `${profile.name.replace(/\s+/g, '_')}.vcf`
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+    URL.revokeObjectURL(url)
+
+    if (profile.id) {
+      fetch('/api/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile_id: profile.id, event_type: 'vcf_download', label: 'Sincronizar contacto' }),
+        keepalive: true
+      }).catch(() => {})
+    }
   }
 
   return (
@@ -127,6 +158,7 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
 
           {/* Save contact button */}
           <Button
+            onClick={handleVcfDownload}
             className="mt-5 h-10 w-full rounded-xl font-semibold tracking-[0.1em] uppercase text-sm animate-in slide-in-from-bottom-4 fade-in duration-500 delay-1000 fill-mode-both"
             style={{
               backgroundColor: isLightTemplate ? '#101b2e' : '#f2f5f9',
