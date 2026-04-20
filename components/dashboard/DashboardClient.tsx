@@ -5,8 +5,10 @@ import { Home } from 'lucide-react'
 import { Sidebar } from '@/components/shared/sidebar'
 import { DashboardBotonesSection } from '@/features/dashboard/sections/dashboard-botones-section'
 import { DashboardInicioSection } from '@/features/dashboard/sections/dashboard-inicio-section'
+import { DashboardLeadsSection } from '@/features/dashboard/sections/dashboard-leads-section'
 import { DashboardPerfilSection } from '@/features/dashboard/sections/dashboard-perfil-section'
 import { DashboardPlantillaSection } from '@/features/dashboard/sections/dashboard-plantilla-section'
+import type { Database } from '@/types/database'
 import { TEMPLATES } from '@/lib/constants'
 import { useLogout } from '@/lib/auth/useLogout'
 import { updateProfile, updateTemplate } from '@/lib/actions/profile'
@@ -36,14 +38,17 @@ function normalizeIcon(icon: string): LinkIcon {
   return 'link'
 }
 
+type Lead = Database['public']['Tables']['leads']['Row']
+
 type Props = {
   initialProfile: UIUserProfile
   isAdmin?: boolean
+  initialLeads?: Lead[]
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function DashboardClient({ initialProfile, isAdmin }: Props) {
+export default function DashboardClient({ initialProfile, isAdmin, initialLeads = [] }: Props) {
   const { handleLogout } = useLogout()
 
   // ── Section state ──────────────────────────────────────────────────────────
@@ -297,6 +302,10 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
               templateStatus={templateStatus}
               onTemplateSelect={handleTemplateSelect}
             />
+          )}
+
+          {activeSection === 'leads' && (
+            <DashboardLeadsSection leads={initialLeads} />
           )}
         </div>
       </main>

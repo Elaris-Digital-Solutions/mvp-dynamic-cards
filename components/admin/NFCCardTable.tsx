@@ -227,7 +227,7 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
                   </td>
                   <td className="px-6 py-4 align-middle">
                     <button
-                      onClick={() => handleToggle(c.id, c.is_active)}
+                      onClick={() => handleToggle(c.id, c.is_active ?? false)}
                       disabled={isPending}
                       className={`cursor-pointer disabled:cursor-not-allowed px-3 py-1.5 text-[11px] font-extrabold tracking-wider rounded border transition-colors disabled:opacity-50 ${
                         c.is_active

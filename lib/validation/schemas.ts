@@ -60,6 +60,15 @@ export const updateProfileSchema = z.object({
   banner_url: cloudinaryUrl,
 })
 
+// ─── Lead schemas ─────────────────────────────────────────────────────────────
+
+export const submitLeadSchema = z.object({
+  profile_id:    uuid,
+  visitor_name:  safeText(100),
+  visitor_phone: safeText(30),
+  consented:     z.literal(true, { message: 'Debes aceptar compartir tus datos.' }),
+})
+
 // ─── Admin schemas ────────────────────────────────────────────────────────────
 
 export const processNFCCardSchema = z.object({

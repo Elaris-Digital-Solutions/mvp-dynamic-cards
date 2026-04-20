@@ -114,7 +114,7 @@ export function UserTable({
                   </td>
                   <td className="px-6 py-4 align-top">
                     <button
-                      onClick={() => handleToggleRole(p.id, p.role)}
+                      onClick={() => handleToggleRole(p.id, (p.role ?? 'user') as 'user' | 'admin')}
                       disabled={isPending || p.id === currentUserId}
                       className={`px-3 py-1.5 text-xs font-bold tracking-wide rounded border transition-colors disabled:opacity-50 ${
                         p.role === 'admin'
@@ -122,7 +122,7 @@ export function UserTable({
                           : 'bg-muted text-muted-foreground border-border/40 hover:bg-muted/70'
                       }`}
                     >
-                      {p.role.toUpperCase()}
+                      {(p.role ?? 'user').toUpperCase()}
                     </button>
                   </td>
                   {cards && (

@@ -10,6 +10,7 @@ import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
 import { Download, ExternalLink, Globe, MessageCircle } from 'lucide-react'
 import type { UserProfile } from '@/types/ui.types'
 import { generateVCard } from '@/lib/utils/generate-vcard'
+import { LeadCapturePopup } from './LeadCapturePopup'
 
 function cloudinaryTransform(url: string | undefined, transform: string): string | undefined {
   if (!url || !url.includes('res.cloudinary.com')) return url
@@ -124,6 +125,13 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
       style={{ backgroundColor: template.colors.background }}
       className={`${montserrat.className} min-h-screen flex items-start justify-center px-4 py-6 md:py-8`}
     >
+      {profile.id && (
+        <LeadCapturePopup
+          profileId={profile.id}
+          ownerName={profile.firstName || profile.name || 'este usuario'}
+          isLightTemplate={isLightTemplate}
+        />
+      )}
       <div
         style={{
           backgroundColor: isLightTemplate ? '#f8fbff' : '#04070d',

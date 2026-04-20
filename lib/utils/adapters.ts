@@ -59,7 +59,7 @@ export type UIUserProfile = {
  * Fields intentionally excluded (backend-internal):
  *   profile_id, sort_order, is_active, created_at
  */
-export function dbButtonToLinkItem(button: DBButton): UILinkItem {
+export function dbButtonToLinkItem(button: Pick<DBButton, 'id' | 'label' | 'url' | 'icon'>): UILinkItem {
   return {
     id: button.id,
     title: button.label,
@@ -88,7 +88,7 @@ export function dbButtonToLinkItem(button: DBButton): UILinkItem {
  */
 export function dbProfileToUIProfile(
   profile: DBProfile,
-  buttons: DBButton[] = []
+  buttons: Pick<DBButton, 'id' | 'label' | 'url' | 'icon'>[] = []
 ): UIUserProfile {
   const firstName = profile.first_name ?? ''
   const lastName = profile.last_name ?? ''

@@ -63,4 +63,4 @@ export type SaveStatus = {
   message: string
 }
 
-export type DashboardSection = 'inicio' | 'perfil' | 'botones' | 'plantilla'
+export type DashboardSection = 'inicio' | 'perfil' | 'botones' | 'plantilla' | 'leads'
