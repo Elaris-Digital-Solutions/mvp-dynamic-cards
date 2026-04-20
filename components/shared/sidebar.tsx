@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { LogOut, Home, User, Link as LinkIcon, LayoutGrid, Orbit, Shield, Users } from 'lucide-react'
+import { LogOut, Home, User, Link as LinkIcon, LayoutGrid, Orbit, Shield } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,7 +31,6 @@ const NAV_ITEMS = [
   { id: 'perfil', label: 'Mi perfil', icon: User },
   { id: 'botones', label: 'Mis botones', icon: LinkIcon },
   { id: 'plantilla', label: 'Plantilla', icon: LayoutGrid },
-  { id: 'leads', label: 'Mis contactos', icon: Users },
 ]
 
 // ─── Component ────────────────────────────────────────────────────────────────

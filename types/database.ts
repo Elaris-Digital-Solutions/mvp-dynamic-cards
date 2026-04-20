@@ -103,41 +103,6 @@ export type Database = {
         }
         Relationships: []
       }
-      leads: {
-        Row: {
-          consented: boolean
-          created_at: string
-          id: string
-          profile_id: string
-          visitor_name: string
-          visitor_phone: string
-        }
-        Insert: {
-          consented?: boolean
-          created_at?: string
-          id?: string
-          profile_id: string
-          visitor_name: string
-          visitor_phone: string
-        }
-        Update: {
-          consented?: boolean
-          created_at?: string
-          id?: string
-          profile_id?: string
-          visitor_name?: string
-          visitor_phone?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "leads_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       nfc_cards: {
         Row: {
           assigned_at: string | null
