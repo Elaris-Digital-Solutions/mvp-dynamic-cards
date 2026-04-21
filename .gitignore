@@ -45,3 +45,7 @@ next-env.d.ts
 
 .mcp.json
 bash.exe.stackdump
+ts_errors.txt
+
+# Sentry Config File
+.env.sentry-build-plugin

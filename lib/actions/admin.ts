@@ -5,6 +5,25 @@ import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { revalidatePath } from 'next/cache'
 import { processNFCCardSchema, searchProfilesSchema } from '@/lib/validation/schemas'
 
+async function writeAuditLog(
+  adminId: string,
+  action: string,
+  targetId: string | null,
+  payload: Record<string, unknown>
+) {
+  try {
+    const supabase = createServiceClient()
+    await (supabase.from('admin_audit_log') as any).insert({
+      admin_id: adminId,
+      action,
+      target_id: targetId,
+      payload,
+    })
+  } catch (e) {
+    console.error('audit log failed:', e)
+  }
+}
+
 export async function updateUserStatus(userId: string, is_active: boolean) {
   const { user } = await requireAdmin()
   const supabase = createServiceClient()
@@ -17,6 +36,7 @@ export async function updateUserStatus(userId: string, is_active: boolean) {
     console.error("Admin action Supabase error:", error)
     return { error: `Database update failed: ${error.message}` }
   }
+  await writeAuditLog(user.id, 'update_status', userId, { is_active })
   revalidatePath('/admin')
   return { success: true }
 }
@@ -35,6 +55,7 @@ export async function updateUserExpiration(userId: string, dateStr: string | nul
     console.error("Admin action Supabase error:", error)
     return { error: `Database update failed: ${error.message}` }
   }
+  await writeAuditLog(user.id, 'update_expiration', userId, { service_expires_at: parsedDate })
   revalidatePath('/admin')
   return { success: true }
 }
@@ -52,6 +73,7 @@ export async function updateUserRole(userId: string, role: 'user' | 'admin') {
     console.error("Admin action Supabase error:", error)
     return { error: `Database update failed: ${error.message}` }
   }
+  await writeAuditLog(user.id, 'update_role', userId, { role })
   revalidatePath('/admin')
   return { success: true }
 }
@@ -89,6 +111,7 @@ export async function processNFCCard(formData: FormData) {
 
   if (error) return { error: 'Failed to process NFC Card mapping. Check logic bounds.' }
 
+  await writeAuditLog(user.id, 'process_nfc', card_uid, { profile_id: profile_id || null, is_active })
   revalidatePath('/admin')
   return { success: true }
 }
@@ -100,6 +123,7 @@ export async function toggleNFCCard(id: string, is_active: boolean) {
   const { error } = await (supabase.from('nfc_cards') as any).update({ is_active }).eq('id', id)
   if (error) return { error: 'Failed to toggle NFC hardware state.' }
 
+  await writeAuditLog(user.id, 'toggle_nfc', id, { is_active })
   revalidatePath('/admin')
   return { success: true }
 }
@@ -111,6 +135,7 @@ export async function deleteNFCCard(id: string) {
   const { error } = await supabase.from('nfc_cards').delete().eq('id', id)
   if (error) return { error: 'Failed to purge NFC card bounds.' }
 
+  await writeAuditLog(user.id, 'delete_nfc', id, {})
   revalidatePath('/admin')
   return { success: true }
 }

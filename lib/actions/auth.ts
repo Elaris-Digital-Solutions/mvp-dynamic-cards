@@ -37,14 +37,30 @@ export async function loginAction(email: string, password: string): Promise<{ ro
   return { role: profile?.role ?? null }
 }
 
+async function verifyTurnstile(token: string): Promise<void> {
+  const secret = process.env.TURNSTILE_SECRET_KEY
+  if (!secret) return // Sin secret (dev local) se omite la verificación
+
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ secret, response: token }),
+  })
+  const data = await res.json()
+  if (!data.success) throw new Error('Verificación de seguridad fallida. Inténtalo de nuevo.')
+}
+
 export async function registerAction(
   firstName: string,
   lastName: string,
   email: string,
   password: string,
-  username: string
+  username: string,
+  turnstileToken: string
 ): Promise<void> {
   if (!username) throw new Error('El nombre de usuario es requerido para tu tarjeta.')
+
+  await verifyTurnstile(turnstileToken)
 
   const ip = await getClientIp()
 

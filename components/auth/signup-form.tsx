@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -8,16 +8,21 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { checkUsernameAvailability } from '@/lib/auth/checkUsernameAvailability'
 import { getUsernameSuggestions } from '@/lib/utils/usernameSuggestions'
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: Record<string, unknown>) => string
+      remove: (widgetId: string) => void
+      reset: (widgetId: string) => void
+    }
+  }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SignupFormProps {
-  /**
-   * Integration point: connect to your auth system.
-   * Example: const { signup } = useAuth()
-   *          <SignupForm onSignup={signup} />
-   */
-  onSignup?: (firstName: string, lastName: string, email: string, password: string, username: string) => Promise<void>
-  /** Pass isLoading from your auth context to disable the form during sign-up */
+  onSignup?: (firstName: string, lastName: string, email: string, password: string, username: string, turnstileToken: string) => Promise<void>
   isLoading?: boolean
 }
 
@@ -36,10 +41,59 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [isValidatingUsername, setIsValidatingUsername] = useState(false)
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  const turnstileContainerRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
 
   const isLoading = externalLoading || internalLoading
-  const isSubmitDisabled = isLoading || isValidatingUsername || !!usernameError || !firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !cardUrl.trim()
+  const isSubmitDisabled = isLoading || isValidatingUsername || !!usernameError || !firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !cardUrl.trim() || !turnstileToken
   const pureWhiteStyle = { color: '#ffffff', opacity: 1, WebkitTextFillColor: '#ffffff' }
+
+  // ─── Turnstile widget ──────────────────────────────────────────────────────
+
+  useEffect(() => {
+    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+    if (!siteKey || !turnstileContainerRef.current) return
+
+    const renderWidget = () => {
+      if (!turnstileContainerRef.current || !window.turnstile) return
+      if (widgetIdRef.current) window.turnstile.remove(widgetIdRef.current)
+      widgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: siteKey,
+        theme: 'dark',
+        callback: (token: string) => setTurnstileToken(token),
+        'expired-callback': () => setTurnstileToken(''),
+        'error-callback': () => setTurnstileToken(''),
+      })
+    }
+
+    if (window.turnstile) {
+      renderWidget()
+      return
+    }
+
+    const existing = document.getElementById('cf-turnstile-script')
+    if (!existing) {
+      const script = document.createElement('script')
+      script.id = 'cf-turnstile-script'
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.async = true
+      script.onload = renderWidget
+      document.head.appendChild(script)
+    } else {
+      existing.addEventListener('load', renderWidget)
+    }
+
+    return () => {
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current)
+        widgetIdRef.current = null
+      }
+    }
+  }, [])
+
+  // ─── Username validation ───────────────────────────────────────────────────
 
   const handleCardUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.toLowerCase()
@@ -60,7 +114,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
     }
 
     setIsValidatingUsername(true)
-    const delayDebounceFn = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       try {
         const { available } = await checkUsernameAvailability(rawValue)
         if (!available) {
@@ -73,54 +127,52 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
           setSuggestions([])
           setIsUsernameAvailable(true)
         }
-      } catch (error) {
-        // Silently handle network errors here
+      } catch {
         setIsUsernameAvailable(false)
       } finally {
         setIsValidatingUsername(false)
       }
     }, 500)
 
-    return () => clearTimeout(delayDebounceFn)
+    return () => clearTimeout(timer)
   }, [cardUrl])
+
+  // ─── Submit ────────────────────────────────────────────────────────────────
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (usernameError || isValidatingUsername) return
+    if (usernameError || isValidatingUsername || !turnstileToken) return
 
     setFormError('')
     setInternalLoading(true)
 
     try {
-      // Double check before final submisson to prevent race conditions
       const { available } = await checkUsernameAvailability(cardUrl.trim())
       if (!available) {
         setUsernameError('Este username ya está en uso')
         const suggested = await getUsernameSuggestions(cardUrl.trim())
         setSuggestions(suggested)
-        setInternalLoading(false)
         return
       }
 
       if (onSignup) {
-        await onSignup(firstName.trim(), lastName.trim(), email.trim(), password, cardUrl.trim())
-      }
-      // Default mock behavior: navigate to dashboard
-      // Note: the component routing handles dashboard via handleSignup
-      if (!onSignup) {
+        await onSignup(firstName.trim(), lastName.trim(), email.trim(), password, cardUrl.trim(), turnstileToken)
+      } else {
         router.push('/dashboard')
       }
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'No se pudo crear la cuenta.')
-    } finally {
-      if (!onSignup || usernameError) {
-        // If external routing handles it, we might unmount anyway.
-        setInternalLoading(false)
-      } else {
-        setInternalLoading(false)
+      // Resetear el widget para que el usuario pueda intentar de nuevo
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.reset(widgetIdRef.current)
+        setTurnstileToken('')
       }
+    } finally {
+      setInternalLoading(false)
     }
   }
+
+  // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="w-full max-w-md mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
@@ -252,6 +304,11 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                 disabled={isLoading}
                 className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
               />
+            </div>
+
+            {/* Turnstile CAPTCHA */}
+            <div className="flex justify-center">
+              <div ref={turnstileContainerRef} />
             </div>
 
             {formError && (

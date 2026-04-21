@@ -1,8 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { requireActiveUser } from '@/lib/auth/requireActiveUser'
+import { requireAuth } from '@/lib/auth/requireAuth'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { templateKeyToId } from '@/lib/utils/template-map'
 import { updateProfileSchema } from '@/lib/validation/schemas'
 
@@ -107,4 +109,21 @@ export async function updateTemplate(
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)
   return { success: true }
+}
+
+export async function deleteAccount(): Promise<{ error?: string }> {
+  // Usamos requireAuth (no requireActiveUser) para que cuentas inactivas/vencidas
+  // también puedan solicitar su borrado.
+  const user = await requireAuth()
+  const supabase = createServiceClient()
+
+  // Borrar en orden FK: hijos primero
+  await (supabase.from('action_buttons') as any).delete().eq('profile_id', user.id)
+  await (supabase.from('click_events') as any).delete().eq('profile_id', user.id)
+  await (supabase.from('profiles') as any).delete().eq('id', user.id)
+
+  const { error } = await supabase.auth.admin.deleteUser(user.id)
+  if (error) return { error: error.message }
+
+  redirect('/')
 }

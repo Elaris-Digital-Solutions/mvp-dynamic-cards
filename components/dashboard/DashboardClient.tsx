@@ -111,11 +111,19 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
   }
 
   const cloudinaryUpload = async (file: File): Promise<string> => {
+    const MAX_BYTES = 5 * 1024 * 1024
+    const ALLOWED   = ['image/jpeg', 'image/png', 'image/webp']
+
+    if (!ALLOWED.includes(file.type))
+      throw new Error('Solo se permiten imágenes JPG, PNG o WebP.')
+    if (file.size > MAX_BYTES)
+      throw new Error('La imagen no puede superar los 5 MB.')
+
     const formData = new FormData()
     formData.append('file', file)
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
     formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!)
-    
+
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
       { method: 'POST', body: formData }
