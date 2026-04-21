@@ -1,47 +1,20 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { LoginForm } from '@/components/auth/login-form'
+import { loginAction } from '@/lib/actions/auth'
 
 export default function LoginPage() {
   const router = useRouter()
 
   const handleLogin = async (email: string, password: string) => {
-    const supabase = createClient()
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (authError) {
-      if (authError.message === 'Invalid login credentials') {
-        throw new Error('Credenciales inválidas. Por favor intenta de nuevo.')
-      }
-      throw new Error(authError.message)
-    }
-
-    if (authData.user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single()
-
-      const profile = data as { role: 'admin' | 'user' } | null
-
-      router.refresh()
-      if (profile?.role === 'admin') {
-        router.push('/admin')
-      } else {
-        router.push('/dashboard')
-      }
-    } else {
-      router.refresh()
-      router.push('/dashboard')
-    }
+    const { role } = await loginAction(email, password)
+    router.refresh()
+    router.push(role === 'admin' ? '/admin' : '/dashboard')
   }
 
   return (
     <div className="relative isolate min-h-screen bg-background flex items-center justify-center px-5 sm:px-4 overflow-hidden">
-      {/* Hero background layers */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-0"

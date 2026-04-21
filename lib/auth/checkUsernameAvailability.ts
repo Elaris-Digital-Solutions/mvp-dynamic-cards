@@ -1,26 +1,31 @@
 'use server'
 
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { isRateLimited } from '@/lib/utils/rateLimiter'
 
 export async function checkUsernameAvailability(username: string): Promise<{ available: boolean }> {
   if (!username) return { available: false }
 
-  const cleanUsername = username.toLowerCase().trim()
+  const h = await headers()
+  const forwarded = h.get('x-forwarded-for')
+  const real = h.get('x-real-ip')
+  const ip = (forwarded ? forwarded.split(',')[0] : real) ?? 'unknown'
 
+  if (await isRateLimited(`username:${ip}`)) {
+    return { available: false }
+  }
+
+  const cleanUsername = username.toLowerCase().trim()
   const supabase = await createClient()
 
-  // We check the profiles table for the username.
+  // ilike para comparación case-insensitive robusta aunque el trigger falle
   const { data, error } = await supabase
     .from('profiles')
     .select('username')
-    .eq('username', cleanUsername)
+    .ilike('username', cleanUsername)
     .single()
 
-  // PGRST116 indicates 0 rows returned from .single(), meaning the username is available
-  if (error && error.code === 'PGRST116') {
-    return { available: true }
-  }
-
-  // If we found data, or encountered any other error, we conservatively say it's not available
+  if (error && error.code === 'PGRST116') return { available: true }
   return { available: false }
 }

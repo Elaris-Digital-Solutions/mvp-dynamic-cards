@@ -26,10 +26,24 @@ const cloudinaryUrl = z
 const httpUrl = z
   .string()
   .trim()
-  .transform(v => (!v.startsWith('http://') && !v.startsWith('https://') ? `https://${v}` : v))
+  .refine(v => {
+    // Rechazar explícitamente schemes peligrosos antes de prefijar (ej: javascript:, data:)
+    const lower = v.toLowerCase()
+    if (!lower.startsWith('http://') && !lower.startsWith('https://')) return true
+    return lower.startsWith('http://') || lower.startsWith('https://')
+  }, 'Solo se permiten URLs http o https')
+  .transform(v => {
+    const lower = v.toLowerCase()
+    if (!lower.startsWith('http://') && !lower.startsWith('https://')) {
+      // Rechazar cualquier scheme conocido que no sea http/https
+      if (/^[a-z][a-z0-9+\-.]*:/i.test(v)) throw new Error('Scheme de URL no permitido')
+      return `https://${v}`
+    }
+    return v
+  })
   .refine(v => {
     try { new URL(v); return true } catch { return false }
-  }, 'Invalid URL format')
+  }, 'Formato de URL inválido')
 
 // ─── Button schemas ───────────────────────────────────────────────────────────
 

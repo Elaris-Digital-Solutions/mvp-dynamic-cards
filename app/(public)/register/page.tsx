@@ -1,45 +1,20 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { SignupForm } from '@/components/auth/signup-form'
+import { registerAction } from '@/lib/actions/auth'
 
 export default function RegisterPage() {
   const router = useRouter()
 
   const handleSignup = async (firstName: string, lastName: string, email: string, password: string, username: string) => {
-    if (!username) {
-      throw new Error('El nombre de usuario es requerido para tu tarjeta.')
-    }
-
-    const supabase = createClient()
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username,
-          first_name: firstName,
-          last_name: lastName,
-          full_name: [firstName, lastName].filter(Boolean).join(' '),
-        }
-      }
-    })
-
-    if (signUpError) {
-      if (signUpError.message.includes('User already registered') || signUpError.message.includes('already exists')) {
-        throw new Error('Este email ya está en uso.')
-      }
-      throw new Error(signUpError.message)
-    }
-
+    await registerAction(firstName, lastName, email, password, username)
     router.refresh()
     router.push('/dashboard')
   }
 
   return (
     <div className="relative isolate min-h-screen bg-background flex items-center justify-center px-5 sm:px-4 overflow-hidden">
-      {/* Hero background layers */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-0"

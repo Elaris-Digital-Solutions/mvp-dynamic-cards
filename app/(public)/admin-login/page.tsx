@@ -1,45 +1,25 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { LoginForm } from '@/components/auth/login-form'
+import { loginAction } from '@/lib/actions/auth'
 
 export default function AdminLoginPage() {
   const router = useRouter()
 
   const handleLogin = async (email: string, password: string) => {
-    const supabase = createClient()
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    const { role } = await loginAction(email, password)
 
-    if (authError) {
-      if (authError.message === 'Invalid login credentials') {
-        throw new Error('Credenciales inválidas. Por favor intenta de nuevo.')
-      }
-      throw new Error(authError.message)
+    if (role !== 'admin') {
+      throw new Error('No tienes permisos de administrador.')
     }
 
-    if (authData.user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single()
-
-      const profile = data as { role: 'admin' | 'user' } | null
-
-      router.refresh()
-      if (profile?.role === 'admin') {
-        router.push('/admin')
-      } else {
-        // Not an admin — send back to regular login
-        throw new Error('No tienes permisos de administrador.')
-      }
-    }
+    router.refresh()
+    router.push('/admin')
   }
 
   return (
     <div className="relative isolate min-h-screen bg-background flex items-center justify-center px-5 sm:px-4 overflow-hidden">
-      {/* Hero background layers */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-0"
