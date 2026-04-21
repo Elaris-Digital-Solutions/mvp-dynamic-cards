@@ -16,13 +16,15 @@ interface ProfilePageProps {
 const getProfileData = cache(async (username: string) => {
   const supabase = createPublicClient()
 
+  // BLOQUEANTE 1: consultar la vista public_profiles en lugar de la tabla profiles
+  // La vista excluye role/service_expires_at/is_active y filtra cuentas inactivas/vencidas
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, username, full_name, first_name, last_name, email, phone, whatsapp, job_title, company, bio, avatar_url, banner_url, template_id, is_active')
+    .from('public_profiles' as any)
+    .select('id, username, full_name, first_name, last_name, email, phone, whatsapp, job_title, company, bio, avatar_url, banner_url, template_id')
     .eq('username', username)
     .single() as any
 
-  if (!profile || !profile.is_active) return null
+  if (!profile) return null
 
   const { data: buttons } = await supabase
     .from('action_buttons')
