@@ -1,6 +1,6 @@
 'use client'
 
-import { updateUserRole, updateUserStatus, updateUserExpiration } from '@/lib/actions/admin'
+import { updateUserRole, updateUserStatus } from '@/lib/actions/admin'
 import { Database } from '@/types/database'
 import { useState, useTransition } from 'react'
 
@@ -54,18 +54,6 @@ export function UserTable({
     })
   }
 
-  const handleUpdateExpiration = (userId: string, e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError(null)
-    const formData = new FormData(e.currentTarget)
-    const dateStr = formData.get('date') as string || null
-
-    startTransition(async () => {
-      const res = await updateUserExpiration(userId, dateStr)
-      if (res?.error) setError(res.error)
-    })
-  }
-
   return (
     <div className="bg-card border border-border rounded-lg flex flex-col shadow-none">
       {error && (
@@ -81,7 +69,6 @@ export function UserTable({
               <th className="px-6 py-4">Estado</th>
               <th className="px-6 py-4">Rol</th>
               {cards && <th className="px-6 py-4">Tarjeta NFC</th>}
-              <th className="px-6 py-4 min-w-[200px]">Vencimiento</th>
             </tr>
           </thead>
           <tbody>
@@ -141,30 +128,12 @@ export function UserTable({
                       )}
                     </td>
                   )}
-                  <td className="px-6 py-4 align-top">
-                    <form onSubmit={(e) => handleUpdateExpiration(p.id, e)} className="flex items-center space-x-2">
-                      <input
-                        type="date"
-                        name="date"
-                        defaultValue={p.service_expires_at ? p.service_expires_at.split('T')[0] : ''}
-                        title={p.service_expires_at || 'Sin vencimiento'}
-                        className="border border-border bg-background text-foreground p-1.5 rounded text-xs min-w-[130px] focus:ring-1 focus:ring-ring focus:outline-none"
-                      />
-                      <button
-                        disabled={isPending}
-                        type="submit"
-                        className="bg-primary text-primary-foreground px-3 py-1.5 rounded text-xs font-medium hover:bg-primary/80 transition disabled:opacity-50"
-                      >
-                        Guardar
-                      </button>
-                    </form>
-                  </td>
                 </tr>
               )
             })}
             {profiles.length === 0 && (
               <tr>
-                <td colSpan={cards ? 5 : 4} className="px-6 py-8 text-center text-muted-foreground italic">
+                <td colSpan={cards ? 4 : 3} className="px-6 py-8 text-center text-muted-foreground italic">
                   No se encontraron usuarios.
                 </td>
               </tr>
