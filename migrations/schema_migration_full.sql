@@ -159,6 +159,18 @@ CREATE TABLE public.admin_audit_log (
 
 -- ─── 4. FUNCIONES QUE REFERENCIAN TABLAS ─────────────────────
 
+CREATE OR REPLACE FUNCTION public.app_get_own_profile_flags()
+  RETURNS TABLE(role text, is_active boolean, service_expires_at timestamptz)
+  LANGUAGE sql
+  STABLE
+  SECURITY DEFINER
+  SET search_path TO 'public'
+AS $$
+  SELECT p.role, p.is_active, p.service_expires_at
+  FROM public.profiles p
+  WHERE p.id = (SELECT auth.uid());
+$$;
+
 CREATE OR REPLACE FUNCTION public.app_is_admin()
   RETURNS boolean
   LANGUAGE sql
@@ -485,10 +497,10 @@ CREATE POLICY "app_profiles_update_own" ON public.profiles
   WITH CHECK (
     app_is_admin() OR (
       (SELECT auth.uid()) = id
-      AND role             = (SELECT p.role             FROM profiles p WHERE p.id = (SELECT auth.uid()))
-      AND is_active        = (SELECT p.is_active        FROM profiles p WHERE p.id = (SELECT auth.uid()))
+      AND role             = (SELECT f.role             FROM app_get_own_profile_flags() f)
+      AND is_active        = (SELECT f.is_active        FROM app_get_own_profile_flags() f)
       AND NOT (service_expires_at IS DISTINCT FROM
-               (SELECT p.service_expires_at FROM profiles p WHERE p.id = (SELECT auth.uid())))
+               (SELECT f.service_expires_at FROM app_get_own_profile_flags() f))
     )
   );
 
@@ -498,10 +510,8 @@ CREATE POLICY "app_action_buttons_select_public" ON public.action_buttons
   USING (
     is_active = true AND deleted_at IS NULL AND
     EXISTS (
-      SELECT 1 FROM profiles p
-      WHERE p.id = action_buttons.profile_id
-        AND p.is_active = true AND p.deleted_at IS NULL
-        AND (p.service_expires_at IS NULL OR p.service_expires_at > now())
+      SELECT 1 FROM public_profiles
+      WHERE id = action_buttons.profile_id
     )
   );
 

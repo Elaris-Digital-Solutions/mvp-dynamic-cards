@@ -9,8 +9,7 @@ export default function RegisterPage() {
 
   const handleSignup = async (firstName: string, lastName: string, email: string, password: string, username: string, turnstileToken: string) => {
     await registerAction(firstName, lastName, email, password, username, turnstileToken)
-    router.refresh()
-    router.push('/dashboard')
+    router.push('/verify-email')
   }
 
   return (
