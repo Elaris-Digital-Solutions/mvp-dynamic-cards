@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/server'
 
 interface Props {
   params: Promise<{
@@ -10,7 +10,7 @@ interface Props {
 export default async function NFCForwarderPage({ params }: Props) {
   const { card_uid: rawUid } = await params
   const card_uid = decodeURIComponent(rawUid).replace(/[:\-\s]/g, '').toUpperCase()
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const { data: card } = await supabase
     .from('nfc_cards')
