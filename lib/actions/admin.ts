@@ -4,12 +4,13 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { revalidatePath } from 'next/cache'
 import { processNFCCardSchema, searchProfilesSchema } from '@/lib/validation/schemas'
+import { Json } from '@/types/database'
 
 async function writeAuditLog(
   adminId: string,
   action: string,
   targetId: string | null,
-  payload: Record<string, unknown>
+  payload: Json
 ) {
   try {
     const supabase = createServiceClient()
