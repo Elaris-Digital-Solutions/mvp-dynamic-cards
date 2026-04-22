@@ -13,7 +13,7 @@ async function writeAuditLog(
 ) {
   try {
     const supabase = createServiceClient()
-    await (supabase.from('admin_audit_log') as any).insert({
+    await supabase.from('admin_audit_log').insert({
       admin_id: adminId,
       action,
       target_id: targetId,
