@@ -32,7 +32,7 @@ export async function Header() {
             </Link>
           ) : (
             <>
-              <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Button asChild variant="ghost" size="sm">
                 <Link href="/login">Iniciar Sesión</Link>
               </Button>
               <Button asChild variant="default" size="sm">
