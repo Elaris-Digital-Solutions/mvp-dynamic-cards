@@ -226,7 +226,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
               <Label htmlFor="cardUrl" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Enlace de tu perfil</Label>
               <div className="flex h-11 w-full rounded-lg border border-border/60 bg-background/55 backdrop-blur-sm overflow-hidden transition-colors focus-within:border-white/40">
                 <span className="flex items-center px-3 text-white/50 text-sm select-none pointer-events-none bg-white/10 border-r border-border/60 shrink-0">
-                  veltrix.com/
+                  veltrixnfc.com/
                 </span>
                 <input
                   id="cardUrl"
