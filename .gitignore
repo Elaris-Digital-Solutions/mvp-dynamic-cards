@@ -50,3 +50,4 @@ ts_errors.txt
 # Sentry Config File
 .env.sentry-build-plugin
 AUDIT.md
+AUDITV2.md
