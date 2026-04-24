@@ -11,11 +11,14 @@ async function getClientIp(): Promise<string> {
   return (forwarded ? forwarded.split(',')[0] : real) ?? 'unknown'
 }
 
-export async function loginAction(email: string, password: string): Promise<{ role: string | null }> {
+export async function loginAction(
+  email: string,
+  password: string
+): Promise<{ role: string | null; error?: string }> {
   const ip = await getClientIp()
 
   if (await isRateLimited(`auth:${ip}`)) {
-    throw new Error('Demasiados intentos. Espera un minuto antes de reintentar.')
+    return { role: null, error: 'Demasiados intentos. Espera un minuto antes de reintentar.' }
   }
 
   const supabase = await createClient()
@@ -23,9 +26,9 @@ export async function loginAction(email: string, password: string): Promise<{ ro
 
   if (error) {
     if (error.message === 'Invalid login credentials') {
-      throw new Error('Credenciales inválidas. Por favor intenta de nuevo.')
+      return { role: null, error: 'Credenciales inválidas. Por favor intenta de nuevo.' }
     }
-    throw new Error(error.message)
+    return { role: null, error: error.message }
   }
 
   const { data: profile } = await supabase
@@ -37,9 +40,9 @@ export async function loginAction(email: string, password: string): Promise<{ ro
   return { role: profile?.role ?? null }
 }
 
-async function verifyTurnstile(token: string): Promise<void> {
+async function verifyTurnstile(token: string): Promise<string | null> {
   const secret = process.env.TURNSTILE_SECRET_KEY
-  if (!secret) return // Sin secret (dev local) se omite la verificación
+  if (!secret) return null
 
   const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST',
@@ -47,7 +50,8 @@ async function verifyTurnstile(token: string): Promise<void> {
     body: JSON.stringify({ secret, response: token }),
   })
   const data = await res.json()
-  if (!data.success) throw new Error('Verificación de seguridad fallida. Inténtalo de nuevo.')
+  if (!data.success) return 'Verificación de seguridad fallida. Inténtalo de nuevo.'
+  return null
 }
 
 export async function registerAction(
@@ -57,15 +61,16 @@ export async function registerAction(
   password: string,
   username: string,
   turnstileToken: string
-): Promise<void> {
-  if (!username) throw new Error('El nombre de usuario es requerido para tu tarjeta.')
+): Promise<{ error?: string }> {
+  if (!username) return { error: 'El nombre de usuario es requerido para tu tarjeta.' }
 
-  await verifyTurnstile(turnstileToken)
+  const turnstileError = await verifyTurnstile(turnstileToken)
+  if (turnstileError) return { error: turnstileError }
 
   const ip = await getClientIp()
 
   if (await isRateLimited(`auth:${ip}`)) {
-    throw new Error('Demasiados intentos. Espera un minuto antes de reintentar.')
+    return { error: 'Demasiados intentos. Espera un minuto antes de reintentar.' }
   }
 
   const supabase = await createClient()
@@ -84,8 +89,10 @@ export async function registerAction(
 
   if (error) {
     if (error.message.includes('User already registered') || error.message.includes('already exists')) {
-      throw new Error('Este email ya está en uso.')
+      return { error: 'Este email ya está en uso.' }
     }
-    throw new Error(error.message)
+    return { error: error.message }
   }
+
+  return {}
 }

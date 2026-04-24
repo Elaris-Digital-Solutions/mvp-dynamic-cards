@@ -8,7 +8,8 @@ export default function LoginPage() {
   const router = useRouter()
 
   const handleLogin = async (email: string, password: string) => {
-    const { role } = await loginAction(email, password)
+    const { role, error } = await loginAction(email, password)
+    if (error) throw new Error(error)
     router.refresh()
     router.push(role === 'admin' ? '/admin' : '/dashboard')
   }

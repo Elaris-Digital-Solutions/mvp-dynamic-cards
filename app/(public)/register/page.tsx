@@ -8,7 +8,8 @@ export default function RegisterPage() {
   const router = useRouter()
 
   const handleSignup = async (firstName: string, lastName: string, email: string, password: string, username: string, turnstileToken: string) => {
-    await registerAction(firstName, lastName, email, password, username, turnstileToken)
+    const { error } = await registerAction(firstName, lastName, email, password, username, turnstileToken)
+    if (error) throw new Error(error)
     router.push('/dashboard')
   }
 
