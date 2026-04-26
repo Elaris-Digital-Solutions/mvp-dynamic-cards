@@ -1,10 +1,11 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { LoginForm } from '@/components/auth/login-form'
 import { loginAction } from '@/lib/actions/auth'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const successMessage = searchParams.get('message') ?? undefined
@@ -29,6 +30,16 @@ export default function LoginPage() {
     : undefined
 
   return (
+    <LoginForm
+      onLogin={handleLogin}
+      successMessage={successMessage}
+      errorMessage={resolvedError}
+    />
+  )
+}
+
+export default function LoginPage() {
+  return (
     <div className="relative isolate min-h-screen bg-background flex items-center justify-center px-5 sm:px-4 overflow-hidden">
       <div
         aria-hidden
@@ -44,11 +55,9 @@ export default function LoginPage() {
       </div>
 
       <div className="relative z-10 w-full py-8">
-        <LoginForm
-          onLogin={handleLogin}
-          successMessage={successMessage}
-          errorMessage={resolvedError}
-        />
+        <Suspense>
+          <LoginContent />
+        </Suspense>
       </div>
     </div>
   )
