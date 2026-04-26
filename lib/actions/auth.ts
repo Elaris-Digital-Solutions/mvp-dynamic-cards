@@ -1,6 +1,6 @@
 'use server'
 
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { isRateLimited } from '@/lib/utils/rateLimiter'
 
@@ -9,6 +9,13 @@ async function getClientIp(): Promise<string> {
   const forwarded = h.get('x-forwarded-for')
   const real = h.get('x-real-ip')
   return (forwarded ? forwarded.split(',')[0] : real) ?? 'unknown'
+}
+
+async function getSiteUrl(): Promise<string> {
+  const h = await headers()
+  const host = h.get('host') ?? 'localhost:3000'
+  const proto = host.startsWith('localhost') ? 'http' : 'https'
+  return `${proto}://${host}`
 }
 
 export async function loginAction(
@@ -27,6 +34,9 @@ export async function loginAction(
   if (error) {
     if (error.message === 'Invalid login credentials') {
       return { role: null, error: 'Credenciales inválidas. Por favor intenta de nuevo.' }
+    }
+    if (error.code === 'email_not_confirmed' || error.message === 'Email not confirmed') {
+      return { role: null, error: 'EMAIL_NOT_CONFIRMED' }
     }
     return { role: null, error: error.message }
   }
@@ -54,11 +64,9 @@ async function verifyTurnstile(token: string): Promise<string | null> {
   return null
 }
 
+// Validates server-side checks only. The actual signUp must be called client-side
+// so the PKCE code verifier is stored in the browser's cookie store.
 export async function registerAction(
-  firstName: string,
-  lastName: string,
-  email: string,
-  password: string,
   username: string,
   turnstileToken: string
 ): Promise<{ error?: string }> {
@@ -73,26 +81,59 @@ export async function registerAction(
     return { error: 'Demasiados intentos. Espera un minuto antes de reintentar.' }
   }
 
-  const supabase = await createClient()
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        username,
-        first_name: firstName,
-        last_name: lastName,
-        full_name: [firstName, lastName].filter(Boolean).join(' '),
-      },
-    },
-  })
+  return {}
+}
 
-  if (error) {
-    if (error.message.includes('User already registered') || error.message.includes('already exists')) {
-      return { error: 'Este email ya está en uso.' }
-    }
-    return { error: error.message }
+export async function resendVerificationEmailAction(email: string): Promise<{ error?: string }> {
+  const ip = await getClientIp()
+
+  // Límite estricto: 3 reenvíos por minuto por IP para proteger el cupo diario de Resend
+  if (await isRateLimited(`resend:${ip}`)) {
+    return { error: 'Demasiadas solicitudes. Espera un momento antes de reintentar.' }
   }
 
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resend({ type: 'signup', email })
+
+  if (error) return { error: 'No se pudo reenviar el correo. Intenta de nuevo.' }
+  return {}
+}
+
+export async function requestPasswordResetAction(email: string): Promise<{ error?: string }> {
+  const ip = await getClientIp()
+
+  if (await isRateLimited(`auth:${ip}`)) {
+    return { error: 'Demasiados intentos. Espera un minuto antes de reintentar.' }
+  }
+
+  const siteUrl = await getSiteUrl()
+  const supabase = await createClient()
+
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
+  })
+
+  // Siempre retornamos éxito para no revelar si el email existe (email enumeration)
+  return {}
+}
+
+export async function updatePasswordAction(password: string): Promise<{ error?: string }> {
+  const cookieStore = await cookies()
+
+  if (cookieStore.get('pw_reset_pending')?.value !== '1') {
+    return { error: 'Sesión de restablecimiento inválida. Solicita un nuevo enlace.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.updateUser({ password })
+
+  if (error) {
+    if (error.message.toLowerCase().includes('different from the old password') || error.message.toLowerCase().includes('same password')) {
+      return { error: 'La nueva contraseña no puede ser igual a la actual.' }
+    }
+    return { error: 'No se pudo actualizar la contraseña. Intenta de nuevo.' }
+  }
+
+  cookieStore.delete('pw_reset_pending')
   return {}
 }

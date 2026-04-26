@@ -3,14 +3,38 @@
 import { useRouter } from 'next/navigation'
 import { SignupForm } from '@/components/auth/signup-form'
 import { registerAction } from '@/lib/actions/auth'
+import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
   const router = useRouter()
 
   const handleSignup = async (firstName: string, lastName: string, email: string, password: string, username: string, turnstileToken: string) => {
-    const { error } = await registerAction(firstName, lastName, email, password, username, turnstileToken)
-    if (error) throw new Error(error)
-    router.push('/dashboard')
+    const { error: validationError } = await registerAction(username, turnstileToken)
+    if (validationError) throw new Error(validationError)
+
+    const supabase = createClient()
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          username,
+          first_name: firstName,
+          last_name: lastName,
+          full_name: [firstName, lastName].filter(Boolean).join(' '),
+        },
+      },
+    })
+
+    if (error) {
+      if (error.message.includes('User already registered') || error.message.includes('already exists')) {
+        throw new Error('Este email ya está en uso.')
+      }
+      throw new Error(error.message)
+    }
+
+    router.push(`/verify-email?email=${encodeURIComponent(email)}`)
   }
 
   return (

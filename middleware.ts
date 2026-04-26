@@ -16,5 +16,7 @@ export const config = {
     '/admin-login',
     '/inactive',
     '/verify-email',
+    '/forgot-password',
+    '/reset-password',
   ],
 }

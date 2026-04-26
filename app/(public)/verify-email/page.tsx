@@ -1,5 +1,10 @@
-import { redirect } from 'next/navigation'
+import { VerifyEmailClient } from './verify-email-client'
 
-export default function VerifyEmailPage() {
-  redirect('/dashboard')
+interface Props {
+  searchParams: Promise<{ email?: string }>
+}
+
+export default async function VerifyEmailPage({ searchParams }: Props) {
+  const { email } = await searchParams
+  return <VerifyEmailClient email={email ?? ''} />
 }

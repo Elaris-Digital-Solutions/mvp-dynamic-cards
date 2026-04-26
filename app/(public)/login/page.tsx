@@ -1,18 +1,32 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { LoginForm } from '@/components/auth/login-form'
 import { loginAction } from '@/lib/actions/auth'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const successMessage = searchParams.get('message') ?? undefined
+  const errorParam = searchParams.get('error') ?? undefined
 
   const handleLogin = async (email: string, password: string) => {
     const { role, error } = await loginAction(email, password)
+
+    if (error === 'EMAIL_NOT_CONFIRMED') {
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+      return
+    }
+
     if (error) throw new Error(error)
+
     router.refresh()
     router.push(role === 'admin' ? '/admin' : '/dashboard')
   }
+
+  const resolvedError = errorParam === 'link-expirado'
+    ? 'El enlace ha expirado. Solicita uno nuevo.'
+    : undefined
 
   return (
     <div className="relative isolate min-h-screen bg-background flex items-center justify-center px-5 sm:px-4 overflow-hidden">
@@ -30,7 +44,11 @@ export default function LoginPage() {
       </div>
 
       <div className="relative z-10 w-full py-8">
-        <LoginForm onLogin={handleLogin} />
+        <LoginForm
+          onLogin={handleLogin}
+          successMessage={successMessage}
+          errorMessage={resolvedError}
+        />
       </div>
     </div>
   )

@@ -10,20 +10,16 @@ import { Label } from '@/components/ui/label'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LoginFormProps {
-  /**
-   * Integration point: connect to your auth system.
-   * Example: const { login } = useAuth(); <LoginForm onLogin={login} />
-   */
   onLogin?: (email: string, password: string) => Promise<void>
-  /** Pass isLoading from your auth context to disable the form during sign-in */
   isLoading?: boolean
-  /** Hide the "¿No tienes cuenta?" link — use for admin-only login screens */
   hideSignup?: boolean
+  successMessage?: string
+  errorMessage?: string
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSignup = false }: LoginFormProps) {
+export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSignup = false, successMessage, errorMessage }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -42,9 +38,9 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
     try {
       if (onLogin) {
         await onLogin(email.trim(), password)
+      } else {
+        router.push('/dashboard')
       }
-      // Default mock behavior: navigate to dashboard
-      router.push('/dashboard')
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'No se pudo iniciar sesión.')
     } finally {
@@ -68,6 +64,18 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
             <p style={pureWhiteStyle}>Accede a tu cuenta</p>
           </div>
 
+          {successMessage && (
+            <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
+              <p className="text-sm text-green-400">{successMessage}</p>
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-3">
+              <p className="text-sm text-red-300">{errorMessage}</p>
+            </div>
+          )}
+
           <form onSubmit={onSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Email</Label>
@@ -85,7 +93,12 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Contraseña</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-xs uppercase tracking-wider" style={pureWhiteStyle}>Contraseña</Label>
+                <Link href="/forgot-password" className="text-xs text-white/60 hover:text-white hover:underline transition-colors">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"
