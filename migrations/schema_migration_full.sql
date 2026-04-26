@@ -460,7 +460,6 @@ CREATE INDEX idx_audit_log_created_at ON public.admin_audit_log USING btree (cre
 CREATE OR REPLACE VIEW public.public_profiles AS
   SELECT
     id, username, full_name, first_name, last_name,
-    email, phone, whatsapp,
     job_title, company, bio,
     avatar_url, banner_url, template_id
   FROM public.profiles

@@ -20,7 +20,7 @@ const getProfileData = cache(async (username: string) => {
   // La vista excluye role/service_expires_at/is_active y filtra cuentas inactivas/vencidas
   const { data: profile } = await supabase
     .from('public_profiles' as any)
-    .select('id, username, full_name, first_name, last_name, email, phone, whatsapp, job_title, company, bio, avatar_url, banner_url, template_id')
+    .select('id, username, full_name, first_name, last_name, job_title, company, bio, avatar_url, banner_url, template_id')
     .eq('username', username)
     .single() as any
 

@@ -12,28 +12,9 @@ export default async function NFCForwarderPage({ params }: Props) {
   const card_uid = decodeURIComponent(rawUid).replace(/[:\-\s]/g, '').toUpperCase()
   const supabase = createPublicClient()
 
-  const { data: card } = await supabase
-    .from('nfc_cards')
-    .select('is_active, profile_id')
-    .eq('card_uid', card_uid)
-    .single() as { data: { is_active: boolean; profile_id: string | null } | null, error: unknown }
+  const { data: username } = await (supabase as any).rpc('resolve_nfc', { p_uid: card_uid })
 
-  // Mask existence entirely if card not mapped or explicitly disabled via admin
-  if (!card || !card.is_active || !card.profile_id) {
-    notFound()
-  }
+  if (!username) notFound()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username, is_active')
-    .eq('id', card.profile_id)
-    .single() as { data: { username: string; is_active: boolean } | null, error: unknown }
-
-  // Ensure targeted profiles are securely active locally before continuing proxy
-  if (!profile || !profile.is_active) {
-    notFound()
-  }
-
-  // Bouncing layer (NFC -> Mapping -> Action)
-  redirect(`/${profile.username}`)
+  redirect(`/${username}`)
 }
