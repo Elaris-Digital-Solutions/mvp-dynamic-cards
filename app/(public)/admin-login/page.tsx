@@ -12,7 +12,6 @@ export default function AdminLoginPage() {
 
     if (error) throw new Error(error)
 
-    router.refresh()
     router.push('/admin')
   }
 

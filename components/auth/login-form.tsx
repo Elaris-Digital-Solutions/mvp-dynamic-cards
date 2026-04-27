@@ -41,9 +41,9 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
       } else {
         router.push('/dashboard')
       }
+      // On success: stay in loading state until the component unmounts during navigation
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'No se pudo iniciar sesión.')
-    } finally {
       setInternalLoading(false)
     }
   }

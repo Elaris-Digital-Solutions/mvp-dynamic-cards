@@ -1,9 +1,15 @@
 import { cache } from 'react'
+import ReactDOM from 'react-dom'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createPublicClient } from '@/lib/supabase/server'
 import { LinktreeCard } from '@/components/card/linktree-card'
 import { dbProfileToUIProfile } from '@/lib/utils/adapters'
+
+function cloudinaryEagerTransform(url: string | null, transform: string): string | null {
+  if (!url?.includes('res.cloudinary.com')) return url
+  return url.replace('/upload/', `/upload/${transform}/`)
+}
 
 export const revalidate = 60
 
@@ -56,6 +62,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const data = await getProfileData(username)
 
   if (!data) notFound()
+
+  // Preload avatar so the browser fetches it before JS runs
+  const avatarPreload = cloudinaryEagerTransform(data.profile.avatar_url, 'w_200,h_200,c_fill,f_auto,q_auto')
+  if (avatarPreload) {
+    ReactDOM.preload(avatarPreload, { as: 'image', fetchPriority: 'high' })
+  }
 
   const { profile, buttons } = data
   const uiProfile = dbProfileToUIProfile(profile, buttons)

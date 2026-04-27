@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
-import Image from 'next/image'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { TEMPLATES } from '@/lib/constants'
 import { montserrat } from '@/lib/fonts'
@@ -143,14 +142,16 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
             <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_50%_10%,rgba(255,255,255,0.18),transparent_65%)]" />
           </div>
 
-          <Avatar className="absolute z-20 left-1/2 bottom-0 h-24 w-24 -translate-x-1/2 translate-y-[52%] rounded-3xl border-4 border-black/70 shadow-xl animate-in zoom-in-75 fade-in duration-500 delay-300 fill-mode-both">
+          <Avatar className="absolute z-20 left-1/2 bottom-0 h-24 w-24 -translate-x-1/2 translate-y-[52%] rounded-3xl border-4 border-black/70 shadow-xl animate-in zoom-in-75 fade-in duration-500 fill-mode-both">
             {profile.profileImage && !avatarError ? (
-              <Image
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
                 src={cloudinaryTransform(profile.profileImage, 'w_200,h_200,c_fill,f_auto,q_auto') || profile.profileImage}
                 alt={profile.name || 'Avatar'}
                 width={96}
                 height={96}
-                priority
+                fetchPriority="high"
+                decoding="async"
                 className="rounded-3xl object-cover w-full h-full"
                 onError={() => setAvatarError(true)}
               />

@@ -21,7 +21,6 @@ function LoginContent() {
 
     if (error) throw new Error(error)
 
-    router.refresh()
     router.push(role === 'admin' ? '/admin' : '/dashboard')
   }
 

@@ -7,7 +7,7 @@ export function DashboardSkeleton() {
       <div className="w-full md:w-72 border-b md:border-b-0 md:border-r border-border p-4 md:p-5 flex flex-col gap-3">
         <Skeleton className="h-8 w-32 rounded-md" />
         <div className="grid grid-cols-2 md:grid-cols-1 gap-2 mt-2">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className="h-10 w-full rounded-xl" />
           ))}
         </div>
