@@ -42,6 +42,9 @@ yarn-error.log*
 next-env.d.ts
 /.claude/worktrees
 /.claude/settings.local.json
+/.claude/skills/
+/.agents/skills/
+skills-lock.json
 
 .mcp.json
 bash.exe.stackdump
