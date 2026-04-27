@@ -11,6 +11,7 @@ import { DashboardPlantillaSection } from '@/features/dashboard/sections/dashboa
 import { TEMPLATES } from '@/lib/constants'
 import { useLogout } from '@/lib/auth/useLogout'
 import { updateProfile, updateTemplate, deleteAccount } from '@/lib/actions/profile'
+import { UsernameSetupModal } from '@/components/dashboard/UsernameSetupModal'
 import { compressImage } from '@/lib/utils/compress-image'
 import { createButton, updateButton, deleteButton } from '@/lib/actions/buttons'
 import type { UIUserProfile, UILinkItem } from '@/lib/utils/adapters'
@@ -47,6 +48,11 @@ type Props = {
 
 export default function DashboardClient({ initialProfile, isAdmin }: Props) {
   const { handleLogout } = useLogout()
+
+  // ── Username setup (collision recovery) ───────────────────────────────────
+  const [needsUsernameSetup, setNeedsUsernameSetup] = useState(
+    () => !!initialProfile.username?.startsWith('_tmp_')
+  )
 
   // ── Section state ──────────────────────────────────────────────────────────
   const [activeSection, setActiveSection] = useState<DashboardSection>('inicio')
@@ -299,6 +305,16 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen md:h-screen animate-in fade-in duration-700 ease-out">
+      {needsUsernameSetup && (
+        <UsernameSetupModal
+          onSuccess={(username) => {
+            setNeedsUsernameSetup(false)
+            setProfileForm((prev: ProfileFormState) => ({ ...prev }))
+            // Update sidebar link
+            initialProfile.username = username
+          }}
+        />
+      )}
       <Sidebar
         activeSection={activeSection}
         onSectionChange={(s: string) => setActiveSection(s as DashboardSection)}

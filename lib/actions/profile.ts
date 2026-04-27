@@ -128,6 +128,44 @@ export async function updateTemplate(
   return { success: true }
 }
 
+export async function updateUsername(
+  newUsername: string
+): Promise<{ success: true } | { error: string }> {
+  const { user, profile } = await requireActiveUser()
+
+  const cleaned = newUsername.toLowerCase().trim()
+
+  if (cleaned.length < 3) return { error: 'El username debe tener al menos 3 caracteres.' }
+  if (cleaned.length > 50) return { error: 'El username no puede superar los 50 caracteres.' }
+  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(cleaned))
+    return { error: 'Solo letras minúsculas, números y guiones. No puede empezar ni terminar con guión.' }
+  if (/--/.test(cleaned)) return { error: 'No se permiten guiones consecutivos.' }
+
+  const supabase = await createClient()
+
+  const { data: existing } = await (supabase as any)
+    .from('profiles')
+    .select('id')
+    .ilike('username', cleaned)
+    .neq('id', user.id)
+    .maybeSingle()
+
+  if (existing) return { error: 'Este username ya está en uso.' }
+
+  const oldUsername = profile.username
+  const { error } = await (supabase as any)
+    .from('profiles')
+    .update({ username: cleaned, updated_at: new Date().toISOString() })
+    .eq('id', user.id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/dashboard')
+  if (oldUsername && !oldUsername.startsWith('_tmp_')) revalidatePath(`/${oldUsername}`)
+  revalidatePath(`/${cleaned}`)
+  return { success: true }
+}
+
 export async function deleteAccount(): Promise<{ error?: string }> {
   // Usamos requireAuth (no requireActiveUser) para que cuentas inactivas/vencidas
   // también puedan solicitar su borrado.
