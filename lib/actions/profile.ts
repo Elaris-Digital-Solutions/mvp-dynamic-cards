@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { templateKeyToId } from '@/lib/utils/template-map'
 import { updateProfileSchema } from '@/lib/validation/schemas'
+import { deleteCloudinaryImage } from '@/lib/utils/cloudinary'
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
@@ -44,6 +45,13 @@ export async function updateProfile(
   const { first_name, last_name, job_title, company, bio, phone, avatar_url, banner_url } = parsed.data
   const whatsapp = parsed.data.whatsapp || phone
 
+  // Fetch current image URLs before overwriting to clean up replaced images afterward
+  const { data: current } = await (supabase as any)
+    .from('profiles')
+    .select('avatar_url, banner_url')
+    .eq('id', user.id)
+    .single()
+
   // Cast required: Supabase's postgrest generic chain infers update() param as
   // 'never' when multiple nullable fields are composed — known TS 5.x + supabase-ssr issue.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,6 +74,15 @@ export async function updateProfile(
   if (error) {
     return { error: error.message }
   }
+
+  await Promise.all([
+    current?.avatar_url && current.avatar_url !== avatar_url
+      ? deleteCloudinaryImage(current.avatar_url)
+      : Promise.resolve(),
+    current?.banner_url && current.banner_url !== banner_url
+      ? deleteCloudinaryImage(current.banner_url)
+      : Promise.resolve(),
+  ])
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)
@@ -117,6 +134,12 @@ export async function deleteAccount(): Promise<{ error?: string }> {
   const user = await requireAuth()
   const supabase = createServiceClient()
 
+  // Fetch image URLs before deletion so we can clean up Cloudinary afterward
+  const { data: profileData } = await (supabase.from('profiles') as any)
+    .select('avatar_url, banner_url')
+    .eq('id', user.id)
+    .single()
+
   // Borrar en orden FK: hijos primero
   await (supabase.from('action_buttons') as any).delete().eq('profile_id', user.id)
   await (supabase.from('click_events') as any).delete().eq('profile_id', user.id)
@@ -124,6 +147,11 @@ export async function deleteAccount(): Promise<{ error?: string }> {
 
   const { error } = await supabase.auth.admin.deleteUser(user.id)
   if (error) return { error: error.message }
+
+  await Promise.all([
+    deleteCloudinaryImage(profileData?.avatar_url),
+    deleteCloudinaryImage(profileData?.banner_url),
+  ])
 
   redirect('/')
 }

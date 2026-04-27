@@ -34,8 +34,7 @@ type DashboardPerfilSectionProps = {
   onImageUpload: (
     field: 'profileImage' | 'bannerImage',
     file: File | undefined,
-    onUpload?: (file: File) => Promise<string>
-  ) => Promise<void>
+  ) => void
   onSave: () => Promise<void>
 }
 
@@ -69,7 +68,7 @@ export function DashboardPerfilSection({
             accept="image/*"
             className="hidden"
             onChange={(event) => {
-              void onImageUpload('profileImage', event.target.files?.[0])
+              onImageUpload('profileImage', event.target.files?.[0])
               event.target.value = ''
             }}
           />
@@ -79,7 +78,7 @@ export function DashboardPerfilSection({
             accept="image/*"
             className="hidden"
             onChange={(event) => {
-              void onImageUpload('bannerImage', event.target.files?.[0])
+              onImageUpload('bannerImage', event.target.files?.[0])
               event.target.value = ''
             }}
           />

@@ -1,15 +1,17 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Home } from 'lucide-react'
 import { Sidebar } from '@/components/shared/sidebar'
 import { DashboardBotonesSection } from '@/features/dashboard/sections/dashboard-botones-section'
+import { DashboardCuentaSection } from '@/features/dashboard/sections/dashboard-cuenta-section'
 import { DashboardInicioSection } from '@/features/dashboard/sections/dashboard-inicio-section'
 import { DashboardPerfilSection } from '@/features/dashboard/sections/dashboard-perfil-section'
 import { DashboardPlantillaSection } from '@/features/dashboard/sections/dashboard-plantilla-section'
 import { TEMPLATES } from '@/lib/constants'
 import { useLogout } from '@/lib/auth/useLogout'
-import { updateProfile, updateTemplate } from '@/lib/actions/profile'
+import { updateProfile, updateTemplate, deleteAccount } from '@/lib/actions/profile'
+import { compressImage } from '@/lib/utils/compress-image'
 import { createButton, updateButton, deleteButton } from '@/lib/actions/buttons'
 import type { UIUserProfile, UILinkItem } from '@/lib/utils/adapters'
 import type {
@@ -84,43 +86,29 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
   const [isUploadingBannerImage, setIsUploadingBannerImage] = useState(false)
   const profileImageInputRef = useRef<HTMLInputElement>(null)
   const bannerImageInputRef = useRef<HTMLInputElement>(null)
+  const [pendingProfileImage, setPendingProfileImage] = useState<File | null>(null)
+  const [pendingBannerImage, setPendingBannerImage] = useState<File | null>(null)
+  const previewUrls = useRef<{ profileImage?: string; bannerImage?: string }>({})
+
+  useEffect(() => {
+    return () => {
+      if (previewUrls.current.profileImage) URL.revokeObjectURL(previewUrls.current.profileImage)
+      if (previewUrls.current.bannerImage) URL.revokeObjectURL(previewUrls.current.bannerImage)
+    }
+  }, [])
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  const handleProfileSave = async () => {
-    setProfileStatus({ state: 'saving', message: 'Guardando cambios de perfil...' })
-
-    const formData = new FormData()
-    formData.append('first_name', profileForm.firstName)
-    formData.append('last_name', profileForm.lastName)
-    formData.append('job_title', profileForm.title)
-    formData.append('company', profileForm.company)
-    formData.append('bio', profileForm.bio)
-    formData.append('phone', profileForm.phone)
-    formData.append('whatsapp', profileForm.useSameWhatsApp ? profileForm.phone : profileForm.whatsapp)
-    formData.append('avatar_url', profileForm.profileImage)
-    formData.append('banner_url', profileForm.bannerImage)
-
-    const res = await updateProfile(formData)
-
-    if (res && 'error' in res) {
-      setProfileStatus({ state: 'error', message: res.error as string })
-    } else {
-      setProfileStatus({ state: 'success', message: 'Perfil actualizado correctamente.' })
-    }
-  }
-
   const cloudinaryUpload = async (file: File): Promise<string> => {
-    const MAX_BYTES = 5 * 1024 * 1024
-    const ALLOWED   = ['image/jpeg', 'image/png', 'image/webp']
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
 
     if (!ALLOWED.includes(file.type))
       throw new Error('Solo se permiten imágenes JPG, PNG o WebP.')
-    if (file.size > MAX_BYTES)
-      throw new Error('La imagen no puede superar los 5 MB.')
+
+    const compressed = await compressImage(file)
 
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', compressed)
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
     formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!)
 
@@ -132,29 +120,90 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
     return data.secure_url
   }
 
-  const handleImageUpload = async (
+  const handleImageUpload = (
     field: 'profileImage' | 'bannerImage',
     file: File | undefined,
-    onUpload?: (file: File) => Promise<string>
   ) => {
     if (!file) return
 
-    if (field === 'profileImage') setIsUploadingProfileImage(true)
-    else setIsUploadingBannerImage(true)
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
+    if (!ALLOWED.includes(file.type)) {
+      setProfileStatus({ state: 'error', message: 'Solo se permiten imágenes JPG, PNG o WebP.' })
+      return
+    }
 
-    try {
-      const uploaderFn = onUpload || cloudinaryUpload
-      const url = await uploaderFn(file)
-      setProfileForm((prev: ProfileFormState) => ({ ...prev, [field]: url }))
-      setProfileStatus({
-        state: 'success',
-        message: 'Imagen lista. Guarda cambios para publicar.',
-      })
-    } catch {
-      setProfileStatus({ state: 'error', message: 'No se pudo procesar la imagen.' })
-    } finally {
-      if (field === 'profileImage') setIsUploadingProfileImage(false)
-      else setIsUploadingBannerImage(false)
+    // Revoke previous preview to free memory
+    if (previewUrls.current[field]) URL.revokeObjectURL(previewUrls.current[field]!)
+
+    const preview = URL.createObjectURL(file)
+    previewUrls.current[field] = preview
+
+    if (field === 'profileImage') setPendingProfileImage(file)
+    else setPendingBannerImage(file)
+
+    setProfileForm((prev: ProfileFormState) => ({ ...prev, [field]: preview }))
+    setProfileStatus({ state: 'idle', message: '' })
+  }
+
+  const handleProfileSave = async () => {
+    setProfileStatus({ state: 'saving', message: 'Guardando cambios de perfil...' })
+
+    let avatarUrl = profileForm.profileImage
+    let bannerUrl = profileForm.bannerImage
+
+    if (pendingProfileImage) {
+      setIsUploadingProfileImage(true)
+      try {
+        avatarUrl = await cloudinaryUpload(pendingProfileImage)
+      } catch {
+        setProfileStatus({ state: 'error', message: 'No se pudo subir la foto de perfil.' })
+        setIsUploadingProfileImage(false)
+        return
+      }
+      setIsUploadingProfileImage(false)
+    }
+
+    if (pendingBannerImage) {
+      setIsUploadingBannerImage(true)
+      try {
+        bannerUrl = await cloudinaryUpload(pendingBannerImage)
+      } catch {
+        setProfileStatus({ state: 'error', message: 'No se pudo subir la foto de portada.' })
+        setIsUploadingBannerImage(false)
+        return
+      }
+      setIsUploadingBannerImage(false)
+    }
+
+    const formData = new FormData()
+    formData.append('first_name', profileForm.firstName)
+    formData.append('last_name', profileForm.lastName)
+    formData.append('job_title', profileForm.title)
+    formData.append('company', profileForm.company)
+    formData.append('bio', profileForm.bio)
+    formData.append('phone', profileForm.phone)
+    formData.append('whatsapp', profileForm.useSameWhatsApp ? profileForm.phone : profileForm.whatsapp)
+    formData.append('avatar_url', avatarUrl)
+    formData.append('banner_url', bannerUrl)
+
+    const res = await updateProfile(formData)
+
+    if (res && 'error' in res) {
+      setProfileStatus({ state: 'error', message: res.error as string })
+    } else {
+      // Revoke preview URLs and clear pending state
+      if (previewUrls.current.profileImage) {
+        URL.revokeObjectURL(previewUrls.current.profileImage)
+        delete previewUrls.current.profileImage
+      }
+      if (previewUrls.current.bannerImage) {
+        URL.revokeObjectURL(previewUrls.current.bannerImage)
+        delete previewUrls.current.bannerImage
+      }
+      setPendingProfileImage(null)
+      setPendingBannerImage(null)
+      setProfileForm((prev: ProfileFormState) => ({ ...prev, profileImage: avatarUrl, bannerImage: bannerUrl }))
+      setProfileStatus({ state: 'success', message: 'Perfil actualizado correctamente.' })
     }
   }
 
@@ -304,6 +353,13 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
               activeTemplateName={activeTemplate.name}
               templateStatus={templateStatus}
               onTemplateSelect={handleTemplateSelect}
+            />
+          )}
+
+          {activeSection === 'cuenta' && (
+            <DashboardCuentaSection
+              username={initialProfile.username ?? ''}
+              onDeleteAccount={async () => { await deleteAccount() }}
             />
           )}
 

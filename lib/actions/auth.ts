@@ -50,6 +50,43 @@ export async function loginAction(
   return { role: profile?.role ?? null }
 }
 
+export async function adminLoginAction(
+  email: string,
+  password: string
+): Promise<{ error?: string }> {
+  const ip = await getClientIp()
+
+  if (await isRateLimited(`auth:${ip}`)) {
+    return { error: 'Demasiados intentos. Espera un minuto antes de reintentar.' }
+  }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+  if (error) {
+    if (error.message === 'Invalid login credentials') {
+      return { error: 'Credenciales inválidas. Por favor intenta de nuevo.' }
+    }
+    if (error.code === 'email_not_confirmed' || error.message === 'Email not confirmed') {
+      return { error: 'EMAIL_NOT_CONFIRMED' }
+    }
+    return { error: error.message }
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .single() as any
+
+  if (profile?.role !== 'admin') {
+    await supabase.auth.signOut()
+    return { error: 'No tienes permisos de administrador.' }
+  }
+
+  return {}
+}
+
 async function verifyTurnstile(token: string): Promise<string | null> {
   const secret = process.env.TURNSTILE_SECRET_KEY
   if (!secret) return null

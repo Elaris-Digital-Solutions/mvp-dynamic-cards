@@ -2,17 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { LoginForm } from '@/components/auth/login-form'
-import { loginAction } from '@/lib/actions/auth'
+import { adminLoginAction } from '@/lib/actions/auth'
 
 export default function AdminLoginPage() {
   const router = useRouter()
 
   const handleLogin = async (email: string, password: string) => {
-    const { role } = await loginAction(email, password)
+    const { error } = await adminLoginAction(email, password)
 
-    if (role !== 'admin') {
-      throw new Error('No tienes permisos de administrador.')
-    }
+    if (error) throw new Error(error)
 
     router.refresh()
     router.push('/admin')
