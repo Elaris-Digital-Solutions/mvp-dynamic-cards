@@ -6,6 +6,7 @@ import { isRateLimited } from '@/lib/utils/rateLimiter'
 
 export async function checkUsernameAvailability(username: string): Promise<{ available: boolean }> {
   if (!username) return { available: false }
+  if (!/^[a-z0-9-]{3,20}$/.test(username.toLowerCase().trim())) return { available: false }
 
   const h = await headers()
   const forwarded = h.get('x-forwarded-for')

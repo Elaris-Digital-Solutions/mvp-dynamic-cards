@@ -99,6 +99,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
     let value = e.target.value.toLowerCase()
     value = value.replace(/[^a-z0-9-]/g, '')
     value = value.replace(/-+/g, '-')
+    value = value.slice(0, 20)
     setCardUrl(value)
     setIsUsernameAvailable(false)
   }
@@ -110,6 +111,22 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
       setSuggestions([])
       setIsValidatingUsername(false)
       setIsUsernameAvailable(false)
+      return
+    }
+
+    if (rawValue.length < 3) {
+      setUsernameError('El username debe tener al menos 3 caracteres')
+      setIsUsernameAvailable(false)
+      setSuggestions([])
+      setIsValidatingUsername(false)
+      return
+    }
+
+    if (rawValue.length > 20) {
+      setUsernameError('El username no puede superar 20 caracteres')
+      setIsUsernameAvailable(false)
+      setSuggestions([])
+      setIsValidatingUsername(false)
       return
     }
 
@@ -235,6 +252,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                   value={cardUrl}
                   onChange={handleCardUrlChange}
                   required
+                  maxLength={20}
                   disabled={isLoading}
                   className="flex-1 pl-3 pr-3 bg-transparent text-white placeholder:text-white/40 outline-none w-full"
                 />

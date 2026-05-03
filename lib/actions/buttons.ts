@@ -54,7 +54,7 @@ export async function createButton(formData: FormData) {
     .eq('profile_id', user.id)
 
   if (count !== null && count >= 6) {
-    return { error: 'Maximum 6 buttons allowed' }
+    return { error: 'Alcanzaste el límite de 6 botones.' }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,7 +68,7 @@ export async function createButton(formData: FormData) {
     is_active: true
   })
 
-  if (error) return { error: 'Database mismatch error' }
+  if (error) return { error: 'No se pudo guardar el botón. Inténtalo de nuevo.' }
 
   await reorderButtons(supabase, user.id)
   revalidatePath('/dashboard')
@@ -96,8 +96,8 @@ export async function updateButton(id: string, formData: FormData) {
     .match({ id, profile_id: user.id })
     .select('id')
 
-  if (error) return { error: 'Failed to update' }
-  if (!data || data.length === 0) return { error: 'Button not found' }
+  if (error) return { error: 'No se pudo actualizar el botón. Inténtalo de nuevo.' }
+  if (!data || data.length === 0) return { error: 'No se encontró el botón.' }
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)
@@ -115,8 +115,8 @@ export async function toggleButton(id: string, is_active: boolean) {
     .match({ id, profile_id: user.id })
     .select('id')
 
-  if (error) return { error: 'Failed to toggle visibility' }
-  if (!data || data.length === 0) return { error: 'Button not found' }
+  if (error) return { error: 'No se pudo cambiar la visibilidad del botón.' }
+  if (!data || data.length === 0) return { error: 'No se encontró el botón.' }
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)
@@ -134,8 +134,8 @@ export async function deleteButton(id: string) {
     .match({ id, profile_id: user.id })
     .select('id')
 
-  if (error) return { error: 'Failed to delete' }
-  if (!data || data.length === 0) return { error: 'Button not found' }
+  if (error) return { error: 'No se pudo eliminar el botón.' }
+  if (!data || data.length === 0) return { error: 'No se encontró el botón.' }
 
   await reorderButtons(supabase, user.id)
   revalidatePath('/dashboard')

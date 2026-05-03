@@ -72,7 +72,7 @@ export async function updateProfile(
     .eq('id', user.id)
 
   if (error) {
-    return { error: error.message }
+    return { error: 'No se pudieron guardar los cambios. Inténtalo de nuevo.' }
   }
 
   await Promise.all([
@@ -136,7 +136,7 @@ export async function updateUsername(
   const cleaned = newUsername.toLowerCase().trim()
 
   if (cleaned.length < 3) return { error: 'El username debe tener al menos 3 caracteres.' }
-  if (cleaned.length > 50) return { error: 'El username no puede superar los 50 caracteres.' }
+  if (cleaned.length > 20) return { error: 'El username no puede superar los 20 caracteres.' }
   if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(cleaned))
     return { error: 'Solo letras minúsculas, números y guiones. No puede empezar ni terminar con guión.' }
   if (/--/.test(cleaned)) return { error: 'No se permiten guiones consecutivos.' }
@@ -158,7 +158,7 @@ export async function updateUsername(
     .update({ username: cleaned, updated_at: new Date().toISOString() })
     .eq('id', user.id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: 'No se pudo actualizar el username. Inténtalo de nuevo.' }
 
   revalidatePath('/dashboard')
   if (oldUsername && !oldUsername.startsWith('_tmp_')) revalidatePath(`/${oldUsername}`)

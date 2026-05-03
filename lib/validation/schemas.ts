@@ -7,7 +7,7 @@ const uuid = z
   .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, 'Invalid UUID')
 
 const safeText = (max: number) =>
-  z.string().trim().max(max).transform(v => v.replace(/</g, '&lt;').replace(/>/g, '&gt;'))
+  z.string().trim().max(max, `No puede superar los ${max} caracteres.`).transform(v => v.replace(/</g, '&lt;').replace(/>/g, '&gt;'))
 
 const cloudinaryUrl = z
   .string()

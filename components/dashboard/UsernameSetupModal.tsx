@@ -93,7 +93,7 @@ export function UsernameSetupModal({ onSuccess }: Props) {
                 placeholder="ej: juan-garcia"
                 disabled={isSaving}
                 className="pr-8"
-                maxLength={50}
+                maxLength={20}
               />
               <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
                 {isChecking && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
@@ -102,7 +102,7 @@ export function UsernameSetupModal({ onSuccess }: Props) {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Solo letras minúsculas, números y guiones. Mínimo 3 caracteres.
+              Solo letras minúsculas, números y guiones. Entre 3 y 20 caracteres.
             </p>
             {!isChecking && isAvailable === false && (
               <p className="text-xs text-destructive">Este username ya está en uso.</p>

@@ -126,7 +126,7 @@ export async function resendVerificationEmailAction(email: string): Promise<{ er
 
   // Límite estricto: 3 reenvíos por minuto por IP para proteger el cupo diario de Resend
   if (await isRateLimited(`resend:${ip}`)) {
-    return { error: 'Demasiadas solicitudes. Espera un momento antes de reintentar.' }
+    return { error: 'Demasiadas solicitudes. Espera un minuto antes de reintentar.' }
   }
 
   const supabase = await createClient()

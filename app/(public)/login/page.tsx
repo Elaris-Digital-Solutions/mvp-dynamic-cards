@@ -25,7 +25,7 @@ function LoginContent() {
   }
 
   const resolvedError = errorParam === 'link-expirado'
-    ? 'El enlace ha expirado. Solicita uno nuevo.'
+    ? 'El enlace ha expirado. Inicia sesión para solicitar uno nuevo.'
     : undefined
 
   return (

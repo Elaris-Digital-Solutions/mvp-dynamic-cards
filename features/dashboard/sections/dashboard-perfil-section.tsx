@@ -201,12 +201,18 @@ export function DashboardPerfilSection({
             </div>
           </div>
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="bio">Biografia</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="bio">Biografía</Label>
+              <span className={`text-xs ${profileForm.bio.length > 480 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {profileForm.bio.length} / 500
+              </span>
+            </div>
             <textarea
               id="bio"
               value={profileForm.bio}
               onChange={(e) => setProfileForm((prev) => ({ ...prev, bio: e.target.value }))}
               rows={4}
+              maxLength={500}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground"
             />
           </div>
