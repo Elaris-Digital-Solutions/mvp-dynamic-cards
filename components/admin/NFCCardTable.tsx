@@ -127,18 +127,18 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
       {showForm && (
         <div className="bg-card rounded-lg border border-border p-6 max-w-5xl">
           <h2 className="text-lg font-bold mb-4 text-foreground border-b border-border pb-3">
-            Provisionar / Reasignar Hardware NFC
+            Vincular Nueva Tarjeta Física 
           </h2>
           <form onSubmit={handleProcess} className="flex flex-col space-y-5 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div className="flex flex-col">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center">
-                  UID de Tarjeta <span className="text-destructive ml-1.5">*</span>
+                  Código Único (UID)<span className="text-destructive ml-1.5">*</span>
                 </label>
                 <input
                   required
                   name="card_uid"
-                  placeholder="ej. 04:A1:B2..."
+                  placeholder="Ingresa el código..."
                   className="w-full border border-border bg-background text-foreground placeholder:text-muted-foreground/50 p-2.5 rounded text-sm focus:ring-1 focus:ring-ring focus:outline-none font-mono transition-colors"
                 />
               </div>
@@ -147,7 +147,7 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
 
               <div className="flex flex-col">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                  Descripción de la tarjeta
+                  Notas / Tipo de la tarjeta
                 </label>
                 <input
                   name="notes"
@@ -166,7 +166,7 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
                   defaultChecked
                   className="w-4 h-4 rounded border-border accent-primary"
                 />
-                <span>Desplegar como <span className="font-bold text-accent-foreground">mapa activo</span></span>
+                <span>Activar tarjeta <span className="font-bold text-accent-foreground">inmediatamente</span></span>
               </label>
 
               <button
@@ -174,7 +174,7 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
                 type="submit"
                 className="cursor-pointer disabled:cursor-wait bg-primary hover:bg-primary/80 text-primary-foreground px-8 py-2.5 rounded font-medium transition disabled:opacity-50 tracking-wide text-sm w-full sm:w-auto"
               >
-                {isPending ? 'Procesando...' : 'Guardar Configuración'}
+                {isPending ? 'Procesando...' : 'Confirmar y Vincular'}
               </button>
             </div>
           </form>
@@ -187,10 +187,10 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted border-b border-border text-muted-foreground whitespace-nowrap">
               <tr>
-                <th className="px-6 py-4">UID de Hardware</th>
+                <th className="px-6 py-4">Detalles de la tarjeta</th>
                 <th className="px-6 py-4">Estado</th>
-                <th className="px-6 py-4">Perfil Vinculado</th>
-                <th className="px-6 py-4">Notas</th>
+                <th className="px-6 py-4">Cliente asignado</th>
+                <th className="px-6 py-4">Descripción</th>
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
@@ -250,7 +250,7 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
                       disabled={isPending}
                       className="cursor-pointer disabled:cursor-not-allowed text-[11px] uppercase tracking-wider font-bold bg-background text-destructive px-3 py-1.5 rounded border border-destructive/30 hover:bg-destructive/10 transition"
                     >
-                      Eliminar
+                      Desvincular
                     </button>
                   </td>
                 </tr>

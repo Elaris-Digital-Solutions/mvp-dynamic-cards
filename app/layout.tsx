@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { montserrat } from '@/lib/fonts'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${montserrat.className} antialiased bg-background text-foreground`}>
         {children}
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   )

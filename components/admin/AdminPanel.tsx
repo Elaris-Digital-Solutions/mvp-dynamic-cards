@@ -32,8 +32,8 @@ interface AdminPanelProps {
 const statItems = (stats: Stats) => [
   { label: 'Total Usuarios', value: stats.totalUsers },
   { label: 'Usuarios Activos', value: stats.activeUsers },
-  { label: 'Tarjetas NFC', value: stats.totalCards },
-  { label: 'Tarjetas Vinculadas', value: stats.linkedCards },
+  { label: 'Tarjetas en Stock', value: stats.totalCards },
+  { label: 'Tarjetas Entregadas', value: stats.linkedCards },
 ]
 
 type Tab = 'users' | 'cards'

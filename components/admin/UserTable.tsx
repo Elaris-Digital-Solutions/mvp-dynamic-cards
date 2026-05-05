@@ -68,7 +68,7 @@ export function UserTable({
               <th className="px-6 py-4">Usuario</th>
               <th className="px-6 py-4">Estado</th>
               <th className="px-6 py-4">Rol</th>
-              {cards && <th className="px-6 py-4">Tarjeta NFC</th>}
+              {cards && <th className="px-6 py-4">Estado físico</th>}
             </tr>
           </thead>
           <tbody>
@@ -123,7 +123,7 @@ export function UserTable({
                         </div>
                       ) : (
                         <span className="text-muted-foreground/60 text-xs bg-muted/40 px-2 py-1 rounded font-medium">
-                          Sin tarjeta
+                          Pendiente de entrega
                         </span>
                       )}
                     </td>

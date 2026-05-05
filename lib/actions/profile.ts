@@ -100,38 +100,40 @@ export async function updateProfile(
 
   const { first_name, last_name, job_title, company, bio, phone, whatsapp, email, avatar_url, banner_url } = parsed.data
 
-  // Fetch current image URLs before overwriting to clean up replaced images afterward
-  const { data: current } = await (supabase as any)
-    .from('profiles')
-    .select('avatar_url, banner_url')
-    .eq('id', user.id)
-    .single()
-
-  // Cast required: Supabase's postgrest generic chain infers update() param as
-  // 'never' when multiple nullable fields are composed — known TS 5.x + supabase-ssr issue.
+  // Run SELECT (for cleanup) and UPDATE in parallel — cleanup only needs current URLs,
+  // not the result of the update, so both can start at the same time.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any)
-    .from('profiles')
-    .update({
-      first_name,
-      last_name,
-      job_title,
-      company,
-      bio,
-      phone,
-      whatsapp,
-      email,
-      avatar_url,
-      banner_url,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', user.id)
+  const [{ data: current }, { error }] = await Promise.all([
+    (supabase as any)
+      .from('profiles')
+      .select('avatar_url, banner_url')
+      .eq('id', user.id)
+      .single(),
+    (supabase as any)
+      .from('profiles')
+      .update({
+        first_name,
+        last_name,
+        job_title,
+        company,
+        bio,
+        phone,
+        whatsapp,
+        email,
+        avatar_url,
+        banner_url,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id),
+  ])
 
   if (error) {
     return { error: 'No se pudieron guardar los cambios. Inténtalo de nuevo.' }
   }
 
+  // Run WhatsApp sync and Cloudinary cleanup in parallel
   await Promise.all([
+    syncWhatsAppButton(supabase, user.id, whatsapp ?? null),
     current?.avatar_url && current.avatar_url !== avatar_url
       ? deleteCloudinaryImage(current.avatar_url)
       : Promise.resolve(),
@@ -139,9 +141,6 @@ export async function updateProfile(
       ? deleteCloudinaryImage(current.banner_url)
       : Promise.resolve(),
   ])
-
-  // Sync managed WhatsApp button
-  await syncWhatsAppButton(supabase, user.id, whatsapp ?? null)
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)

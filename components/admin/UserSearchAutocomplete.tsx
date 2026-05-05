@@ -43,7 +43,7 @@ export function UserSearchAutocomplete() {
   return (
     <div className="flex flex-col" ref={searchRef}>
       <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
-        Perfil de destino
+        Asignar a usuario
       </label>
       <div className="relative">
         {selectedProfile ? (
@@ -68,7 +68,7 @@ export function UserSearchAutocomplete() {
           <>
             <input
               type="text"
-              placeholder="Buscar usuario por username..."
+              placeholder="Usuario del cliente..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setShowDropdown(true) }}
               onFocus={() => setShowDropdown(true)}

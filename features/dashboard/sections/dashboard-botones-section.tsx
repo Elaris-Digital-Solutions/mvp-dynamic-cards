@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ComponentType } from 'react'
-import { Save, Globe, ExternalLink, MessageCircle, GripVertical, Lock } from 'lucide-react'
+import { Save, Globe, ExternalLink, MessageCircle, GripVertical, Lock, Loader2 } from 'lucide-react'
 import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
 import {
   DndContext,
@@ -29,7 +29,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { buildDashboardStatusClass } from '@/features/dashboard/dashboard-status'
 import type { EditableLink, LinkIcon, SaveStatus } from '@/types/ui.types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -397,8 +396,8 @@ export function DashboardBotonesSection({
         </SortableContext>
       </DndContext>
 
-      {linksStatus.state !== 'idle' && (
-        <p className={`text-sm font-medium ${buildDashboardStatusClass(linksStatus)}`}>
+      {linksStatus.state === 'error' && (
+        <p className="text-sm font-medium text-red-400">
           {linksStatus.message}
         </p>
       )}
@@ -416,7 +415,9 @@ export function DashboardBotonesSection({
           className="px-6"
           disabled={linksStatus.state === 'saving'}
         >
-          <Save className="w-4 h-4 mr-2" />
+          {linksStatus.state === 'saving'
+            ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            : <Save className="w-4 h-4 mr-2" />}
           {linksStatus.state === 'saving' ? 'Guardando...' : 'Publicar cambios'}
         </Button>
       </div>

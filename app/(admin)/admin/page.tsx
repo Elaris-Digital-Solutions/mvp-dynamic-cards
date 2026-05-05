@@ -43,9 +43,9 @@ export default async function AdminPage() {
   return (
     <div className="space-y-2">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Panel de Administración</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Centro de Gestión</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Bienvenido, {profile?.username || 'admin'}.
+          Bienvenido, {profile?.first_name || 'admin'}.
         </p>
       </div>
 

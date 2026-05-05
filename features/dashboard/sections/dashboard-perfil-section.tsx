@@ -1,12 +1,11 @@
 import type { RefObject } from 'react'
-import { Save } from 'lucide-react'
+import { Save, Loader2, Camera } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { IconBrandWhatsapp } from '@tabler/icons-react'
-import { buildDashboardStatusClass } from '@/features/dashboard/dashboard-status'
 import type { ProfileFormState, SaveStatus } from '@/types/ui.types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -85,7 +84,13 @@ export function DashboardPerfilSection({
             }}
           />
 
-          <div className="relative h-32 md:h-40 w-full rounded-lg border border-primary/40 shadow-inner overflow-hidden">
+          {/* Banner — clickeable para cambiar portada */}
+          <button
+            type="button"
+            onClick={() => bannerImageInputRef.current?.click()}
+            disabled={isUploadingBannerImage || profileStatus.state === 'saving'}
+            className="relative h-32 md:h-40 w-full rounded-lg border border-primary/40 shadow-inner overflow-hidden group cursor-pointer disabled:cursor-not-allowed"
+          >
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
@@ -95,36 +100,39 @@ export function DashboardPerfilSection({
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/15 via-black/25 to-black/40" />
+            {/* Hover overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 group-disabled:opacity-0 transition-opacity">
+              {isUploadingBannerImage
+                ? <Loader2 className="w-6 h-6 text-white animate-spin" />
+                : <div className="flex flex-col items-center gap-1.5 text-white">
+                    <Camera className="w-6 h-6" />
+                    <span className="text-xs font-semibold tracking-wide">Cambiar portada</span>
+                  </div>
+              }
+            </div>
+          </button>
 
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => profileImageInputRef.current?.click()}
-              disabled={isUploadingProfileImage || profileStatus.state === 'saving'}
-              className="absolute z-10 bottom-3 left-24 md:left-32 h-8 rounded-md border-border/70 bg-background/95 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-primary/50 hover:bg-background hover:shadow-lg hover:shadow-black/30 active:translate-y-0 active:scale-100"
-            >
-              {isUploadingProfileImage ? 'Subiendo...' : 'Subir foto de perfil'}
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => bannerImageInputRef.current?.click()}
-              disabled={isUploadingBannerImage || profileStatus.state === 'saving'}
-              className="absolute z-10 bottom-3 right-3 h-8 rounded-md border-border/70 bg-background/95 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-primary/50 hover:bg-background hover:shadow-lg hover:shadow-black/30 active:translate-y-0 active:scale-100"
-            >
-              {isUploadingBannerImage ? 'Subiendo...' : 'Agregar foto de portada'}
-            </Button>
-          </div>
-
-          <Avatar className="absolute z-20 -bottom-0 left-10 h-20 w-20 rounded-xl border-4 border-background shadow-xl">
-            <AvatarImage src={profileForm.profileImage || undefined} />
-            <AvatarFallback className="rounded-xl text-lg font-bold bg-white text-black">
-              {profileForm.firstName?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          {/* Avatar — clickeable para cambiar foto de perfil */}
+          <button
+            type="button"
+            onClick={() => profileImageInputRef.current?.click()}
+            disabled={isUploadingProfileImage || profileStatus.state === 'saving'}
+            className="absolute z-20 -bottom-0 left-10 h-20 w-20 rounded-xl group cursor-pointer disabled:cursor-not-allowed"
+          >
+            <Avatar className="h-full w-full rounded-xl border-4 border-background shadow-xl">
+              <AvatarImage src={profileForm.profileImage || undefined} />
+              <AvatarFallback className="rounded-xl text-lg font-bold bg-white text-black">
+                {profileForm.firstName?.charAt(0) || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            {/* Hover overlay */}
+            <div className="absolute inset-0 rounded-[8px] flex items-center justify-center bg-black/55 opacity-0 group-hover:opacity-100 group-disabled:opacity-0 transition-opacity">
+              {isUploadingProfileImage
+                ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+                : <Camera className="w-5 h-5 text-white" />
+              }
+            </div>
+          </button>
         </div>
       </div>
 
@@ -195,13 +203,15 @@ export function DashboardPerfilSection({
       {/* Save */}
       <div className="flex justify-end">
         <Button onClick={() => void onSave()} className="px-6" disabled={profileStatus.state === 'saving'}>
-          <Save className="w-4 h-4 mr-2" />
+          {profileStatus.state === 'saving'
+            ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            : <Save className="w-4 h-4 mr-2" />}
           {profileStatus.state === 'saving' ? 'Guardando...' : 'Publicar cambios'}
         </Button>
       </div>
 
-      {profileStatus.state !== 'idle' && (
-        <p className={`text-sm font-medium text-right ${buildDashboardStatusClass(profileStatus)}`}>
+      {profileStatus.state === 'error' && (
+        <p className="text-sm font-medium text-right text-red-400">
           {profileStatus.message}
         </p>
       )}

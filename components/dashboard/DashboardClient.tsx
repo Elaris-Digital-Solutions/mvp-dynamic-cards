@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { Home } from 'lucide-react'
 import { Sidebar } from '@/components/shared/sidebar'
 import { DashboardBotonesSection } from '@/features/dashboard/sections/dashboard-botones-section'
@@ -209,7 +210,8 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
       setPendingProfileImage(null)
       setPendingBannerImage(null)
       setProfileForm((prev: ProfileFormState) => ({ ...prev, profileImage: avatarUrl, bannerImage: bannerUrl }))
-      setProfileStatus({ state: 'success', message: 'Perfil actualizado correctamente.' })
+      setProfileStatus(INITIAL_STATUS)
+      toast.success('Cambios guardados correctamente.')
     }
   }
 
@@ -221,7 +223,8 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
       setTemplateStatus({ state: 'error', message: res.error as string })
     } else {
       setActiveTemplateId(templateId)
-      setTemplateStatus({ state: 'success', message: 'Plantilla actualizada.' })
+      setTemplateStatus(INITIAL_STATUS)
+      toast.success('Plantilla actualizada.')
     }
   }
 
@@ -295,7 +298,8 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
       }
     }
 
-    setLinksStatus({ state: 'success', message: 'Botones actualizados correctamente.' })
+    setLinksStatus(INITIAL_STATUS)
+    toast.success('Botones actualizados correctamente.')
   }
 
   const handleReorderLinks = async (orderedIds: string[]) => {
