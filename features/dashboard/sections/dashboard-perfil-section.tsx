@@ -56,7 +56,7 @@ export function DashboardPerfilSection({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-black tracking-tight">Mi perfil</h1>
+        <h1 className="text-4xl font-black tracking-tight">Datos personales</h1>
         <p className="mt-1.5 text-muted-foreground text-lg">Configura la informacion publica y de contacto.</p>
       </div>
 
@@ -196,7 +196,7 @@ export function DashboardPerfilSection({
       <div className="flex justify-end">
         <Button onClick={() => void onSave()} className="px-6" disabled={profileStatus.state === 'saving'}>
           <Save className="w-4 h-4 mr-2" />
-          {profileStatus.state === 'saving' ? 'Guardando...' : 'Guardar cambios'}
+          {profileStatus.state === 'saving' ? 'Guardando...' : 'Publicar cambios'}
         </Button>
       </div>
 

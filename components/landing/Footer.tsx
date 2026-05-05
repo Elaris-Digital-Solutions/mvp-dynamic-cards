@@ -72,7 +72,7 @@ export function Footer() {
                   Veltrix
                 </span>
                 <p className="mt-3 text-sm text-[#8ab0d0] leading-relaxed max-w-[260px]">
-                  La identidad digital para profesionales que no quieren pasar desapercibidos.
+                  La plataforma de networking inteligente para profesionales de alto impacto. 
                 </p>
               </div>
 

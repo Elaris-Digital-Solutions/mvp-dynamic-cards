@@ -18,7 +18,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <Link href="/dashboard">Mi Perfil</Link>
+              <Link href="/dashboard">Datos Personales</Link>
             </Button>
             <LogoutButton className="text-muted-foreground hover:text-foreground text-sm transition-colors" />
           </div>

@@ -45,7 +45,7 @@ export default function Home() {
           </div>
 
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Eleva tu presencia con una tarjeta que te hace destacar desde el primer contacto.
+            Transforma cada encuentro en una conexión real con tecnología NFC de un solo toque. 
           </p>
 
           <div className="mt-4 flex items-center justify-center">

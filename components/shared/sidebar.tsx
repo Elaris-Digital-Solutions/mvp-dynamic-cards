@@ -28,8 +28,8 @@ interface SidebarProps {
 
 const NAV_ITEMS = [
   { id: 'inicio', label: 'Inicio', icon: Home },
-  { id: 'perfil', label: 'Mi perfil', icon: User },
-  { id: 'botones', label: 'Mis botones', icon: LinkIcon },
+  { id: 'perfil', label: 'Datos personales', icon: User },
+  { id: 'botones', label: 'Enlaces y redes', icon: LinkIcon },
   { id: 'plantilla', label: 'Plantilla', icon: LayoutGrid },
   { id: 'cuenta', label: 'Mi cuenta', icon: Settings },
 ]

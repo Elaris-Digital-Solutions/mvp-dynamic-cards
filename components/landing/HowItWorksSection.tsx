@@ -21,7 +21,7 @@ const steps = [
     icon: Wifi,
     title: 'Comparte con un toque',
     description:
-      'Acerca tu tarjeta a cualquier smartphone moderno. Sin apps, sin fricciones. Tu perfil, instantáneamente.',
+      'Acerca tu tarjeta a cualquier smartphone. Sin que la otra persona necesite instalar nada.',
   },
   {
     number: '04',

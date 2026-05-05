@@ -22,7 +22,7 @@ const features = [
   },
   {
     icon: TrendingUp,
-    title: 'Métricas de visitas',
+    title: 'Analítica de conexiones',
     description:
       'Sabe exactamente quién vio tu perfil, desde qué plataforma y en qué momento.',
   },

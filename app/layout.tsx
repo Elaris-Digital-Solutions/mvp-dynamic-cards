@@ -3,8 +3,8 @@ import { montserrat } from '@/lib/fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Identidad Digital',
-  description: 'Crea tu identidad digital de alto impacto con nuestras plantillas profesionales',
+  title: 'Veltrix | Tarjetas NFC e Identidad Digital de Alto Impacto',
+  description: 'Crea tu identidad digital con tecnología NFC. Comparte tu contacto, redes y portafolio con un solo toque y sin aplicaciones adicionales.',
   icons: {
     icon: [
       { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },

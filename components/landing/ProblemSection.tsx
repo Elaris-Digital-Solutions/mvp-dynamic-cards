@@ -3,8 +3,8 @@ import { RevealOnScroll } from './RevealOnScroll'
 const problems = [
   {
     index: '01',
-    title: 'Tarjetas que quedan obsoletas',
-    description: 'Cada cambio de cargo o empresa la inutiliza. Reimprimir cuesta tiempo y oportunidades.',
+    title: 'Tarjetas que nunca caducan',
+    description: 'Deja de gastar en impresiones. Actualiza tu cargo o empresa en segundos sin cambiar de tarjeta.',
   },
   {
     index: '02',
@@ -13,8 +13,8 @@ const problems = [
   },
   {
     index: '03',
-    title: 'Sin datos sobre tu impacto',
-    description: 'No sabes quién vio tu información ni cuándo. Tu presencia trabaja completamente a ciegas.',
+    title: 'Control total sobre tu impacto',
+    description: 'Mide el éxito de tu networking. Conoce cuántas personas visitan tu perfil y cuándo lo hacen.',
   },
 ]
 

@@ -98,7 +98,7 @@ const LINK_TYPE_CONFIG: Record<string, LinkTypeConfig> = {
   },
 }
 
-// WhatsApp excluido — se gestiona desde Mi Perfil
+// WhatsApp excluido — se gestiona desde Datos personales
 const TYPE_ORDER: LinkIcon[] = ['instagram', 'linkedin', 'website', 'link']
 
 // ─── Sortable Button Row ──────────────────────────────────────────────────────
@@ -150,7 +150,7 @@ function SortableButtonRow({
           {link.isManaged && (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Lock className="w-3 h-3" />
-              Mi Perfil
+              Datos personales
             </span>
           )}
         </div>
@@ -365,7 +365,7 @@ export function DashboardBotonesSection({
     <div className="space-y-6">
       <div className="rounded-xl border border-border/60 p-4 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tight">Mis botones</h1>
+          <h1 className="text-4xl font-black tracking-tight">Enlaces y redes</h1>
           <p className="mt-1.5 text-muted-foreground text-lg">
             Gestiona los botones que se muestran en tu perfil publico.
           </p>
@@ -411,7 +411,7 @@ export function DashboardBotonesSection({
           disabled={linksStatus.state === 'saving'}
         >
           <Save className="w-4 h-4 mr-2" />
-          {linksStatus.state === 'saving' ? 'Guardando...' : 'Guardar cambios'}
+          {linksStatus.state === 'saving' ? 'Guardando...' : 'Publicar cambios'}
         </Button>
       </div>
 
