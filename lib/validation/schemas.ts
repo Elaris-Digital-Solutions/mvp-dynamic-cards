@@ -70,6 +70,8 @@ export const updateProfileSchema = z.object({
   bio:        safeText(500).nullable().optional(),
   phone:      safeText(30).nullable().optional(),
   whatsapp:   safeText(30).nullable().optional(),
+  email:      safeText(254).nullable().optional()
+    .refine(v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Formato de correo inválido.'),
   avatar_url: cloudinaryUrl,
   banner_url: cloudinaryUrl,
 })

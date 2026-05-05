@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { TEMPLATES } from '@/lib/constants'
 import { montserrat } from '@/lib/fonts'
 import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
-import { Download, ExternalLink, Globe, MessageCircle } from 'lucide-react'
+import { Download, ExternalLink, Globe, MessageCircle, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 import type { UserProfile } from '@/types/ui.types'
 import { generateVCard } from '@/lib/utils/generate-vcard'
 
@@ -18,19 +19,16 @@ function cloudinaryTransform(url: string | undefined, transform: string): string
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LinktreeCardProps {
-  /**
-   * Profile data to render. Required — this component is purely presentational.
-   * Integration point: pass the authenticated user profile or the fetched public profile.
-   */
   profile: Pick<
     UserProfile,
     'id' | 'name' | 'firstName' | 'lastName' | 'title' | 'company' | 'bio' | 'email' | 'phone' | 'whatsapp' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
   >
+  showBackButton?: boolean
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function LinktreeCard({ profile }: LinktreeCardProps) {
+export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardProps) {
   const selectedTemplate = profile.selectedTemplate || 'minimal-black'
   const template = TEMPLATES[selectedTemplate as keyof typeof TEMPLATES]
 
@@ -123,6 +121,15 @@ export function LinktreeCard({ profile }: LinktreeCardProps) {
       style={{ backgroundColor: template.colors.background }}
       className={`${montserrat.className} min-h-screen flex items-start justify-center px-4 py-6 md:py-8`}
     >
+      {showBackButton && (
+        <Link
+          href="/dashboard"
+          className="fixed top-4 left-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold bg-black/40 text-white backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Mi panel</span>
+        </Link>
+      )}
       <div
         style={{
           backgroundColor: isLightTemplate ? '#f8fbff' : '#04070d',

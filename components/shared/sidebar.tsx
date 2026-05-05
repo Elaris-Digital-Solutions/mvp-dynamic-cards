@@ -1,8 +1,19 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { LogOut, Home, User, Link as LinkIcon, LayoutGrid, Orbit, Shield, Settings } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { LogOut, Home, User, Link as LinkIcon, LayoutGrid, Orbit, Shield, Settings, ArrowLeft } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,6 +56,8 @@ export function Sidebar({
   isAdmin = false,
   username,
 }: SidebarProps) {
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
   return (
     <aside className="w-full md:w-72 border-b md:border-b-0 md:border-r border-border bg-background/50 backdrop-blur-sm flex flex-col md:h-screen md:sticky md:top-0">
       <div className="p-4 border-b border-border">
@@ -78,6 +91,17 @@ export function Sidebar({
       </nav>
 
       <div className="p-3 border-t border-border space-y-2">
+        <Button
+          asChild
+          variant="ghost"
+          className="w-full justify-center h-11 md:h-9 rounded-xl md:rounded-md text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+        >
+          <Link href="/">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver al inicio
+          </Link>
+        </Button>
+
         {isAdmin && (
           <Button
             asChild
@@ -93,25 +117,41 @@ export function Sidebar({
 
         <Button
           asChild
-          variant="outline"
-          className="w-full justify-center h-11 md:h-9 rounded-xl md:rounded-md border-border/70 bg-background/70 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/15 hover:text-foreground active:translate-y-0"
+          className="w-full justify-center h-11 md:h-9 rounded-xl md:rounded-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
         >
-          <Link href={username ? `/${username}` : '/card'}>
+          <Link href={username ? `/${username}?from=dashboard` : '/card'}>
             <Orbit className="w-4 h-4 mr-2" />
-            Mi tarjeta
+            Ver mi perfil público
           </Link>
         </Button>
 
         <Button
-          variant="outline"
-          className="w-full justify-center h-11 md:h-9 rounded-xl md:rounded-md border-border/70 bg-background/70 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/15 hover:text-foreground active:translate-y-0"
-          onClick={() => void onLogout?.()}
+          variant="ghost"
+          className="w-full justify-center h-11 md:h-9 rounded-xl md:rounded-md text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+          onClick={() => setConfirmOpen(true)}
           disabled={isLoading}
         >
           <LogOut className="w-4 h-4 mr-2" />
-          Cerrar sesion
+          Cerrar sesión
         </Button>
       </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Cerrar sesión?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se cerrará tu sesión en este dispositivo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void onLogout?.()}>
+              Cerrar sesión
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </aside>
   )
 }

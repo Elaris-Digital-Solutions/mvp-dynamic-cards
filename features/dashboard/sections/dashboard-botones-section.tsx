@@ -378,15 +378,21 @@ export function DashboardBotonesSection({
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={links.map(l => l.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
-            {links.map((link) => (
-              <SortableButtonRow
-                key={link.id}
-                link={link}
-                linksStatus={linksStatus}
-                onRemoveLink={onRemoveLink}
-                onUpdateLink={onUpdateLink}
-              />
-            ))}
+            {links.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                Aún no tienes enlaces configurados. Añade tu primer botón para que otros puedan contactarte.
+              </p>
+            ) : (
+              links.map((link) => (
+                <SortableButtonRow
+                  key={link.id}
+                  link={link}
+                  linksStatus={linksStatus}
+                  onRemoveLink={onRemoveLink}
+                  onUpdateLink={onUpdateLink}
+                />
+              ))
+            )}
           </div>
         </SortableContext>
       </DndContext>

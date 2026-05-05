@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import LogoutButton from '@/components/auth/LogoutButton'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -18,7 +19,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <Link href="/dashboard">Datos Personales</Link>
+              <Link href="/">
+                <ArrowLeft className="w-4 h-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Inicio</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <Link href="/dashboard">Mi panel</Link>
             </Button>
             <LogoutButton className="text-muted-foreground hover:text-foreground text-sm transition-colors" />
           </div>

@@ -96,7 +96,9 @@ export function UserSearchAutocomplete() {
                           <span className="ml-2 text-xs text-muted-foreground">[Inactivo]</span>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground">@{p.username}</div>
+                      {p.full_name && (
+                        <div className="text-xs text-muted-foreground">@{p.username}</div>
+                      )}
                     </div>
                   ))
                 ) : searchQuery.trim().length >= 2 ? (

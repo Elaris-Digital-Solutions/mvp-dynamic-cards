@@ -92,12 +92,13 @@ export async function updateProfile(
     bio:        formData.get('bio'),
     phone:      formData.get('phone'),
     whatsapp:   formData.get('whatsapp'),
+    email:      formData.get('email'),
     avatar_url: formData.get('avatar_url'),
     banner_url: formData.get('banner_url'),
   })
   if (!parsed.success) return { error: parsed.error.issues[0].message }
 
-  const { first_name, last_name, job_title, company, bio, phone, whatsapp, avatar_url, banner_url } = parsed.data
+  const { first_name, last_name, job_title, company, bio, phone, whatsapp, email, avatar_url, banner_url } = parsed.data
 
   // Fetch current image URLs before overwriting to clean up replaced images afterward
   const { data: current } = await (supabase as any)
@@ -119,6 +120,7 @@ export async function updateProfile(
       bio,
       phone,
       whatsapp,
+      email,
       avatar_url,
       banner_url,
       updated_at: new Date().toISOString(),

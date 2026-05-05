@@ -14,9 +14,8 @@ function cloudinaryEagerTransform(url: string | null, transform: string): string
 export const revalidate = 60
 
 interface ProfilePageProps {
-  params: Promise<{
-    username: string
-  }>
+  params: Promise<{ username: string }>
+  searchParams: Promise<{ from?: string }>
 }
 
 const getProfileData = cache(async (username: string) => {
@@ -57,8 +56,9 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
   }
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
+export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const { username } = await params
+  const { from } = await searchParams
   const data = await getProfileData(username)
 
   if (!data) notFound()
@@ -76,5 +76,5 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     id: uiProfile.id,
     selectedTemplate: uiProfile.selectedTemplate as 'minimal-black' | undefined,
   }
-  return <LinktreeCard profile={typedProfile} />
+  return <LinktreeCard profile={typedProfile} showBackButton={from === 'dashboard'} />
 }

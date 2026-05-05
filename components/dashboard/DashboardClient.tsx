@@ -188,6 +188,7 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
     formData.append('bio', profileForm.bio)
     formData.append('phone', profileForm.phone)
     formData.append('whatsapp', profileForm.whatsapp)
+    formData.append('email', profileForm.email)
     formData.append('avatar_url', avatarUrl)
     formData.append('banner_url', bannerUrl)
 
@@ -344,7 +345,7 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
                 <Home className="w-4 h-4" />
                 <span className="text-xs uppercase tracking-[0.2em]">Panel</span>
               </div>
-              <DashboardInicioSection />
+              <DashboardInicioSection profileForm={profileForm} links={links} />
             </div>
           )}
 
