@@ -25,22 +25,8 @@ type PhoneInputProps = {
 function parsePhoneValue(value: string): { country: PhoneCountry; localNumber: string } {
   if (!value) return { country: DEFAULT_COUNTRY, localNumber: '' }
   const sorted = [...PHONE_COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length)
-
-  // Primary: formato guardado "+CC local" (e.g. "+51 987450340")
   const matched = sorted.find(c => value.startsWith(c.dialCode + ' '))
   if (matched) return { country: matched, localNumber: value.slice(matched.dialCode.length + 1) }
-
-  // Fallback: valor legacy sin prefijo "+CC " (e.g. "51987450340")
-  // Compara solo dígitos para detectar el código de país al inicio
-  const digits = value.replace(/\D/g, '')
-  if (digits.length >= 7) {
-    const byDigits = sorted.find(c => digits.startsWith(c.dialCode.replace('+', '')))
-    if (byDigits) {
-      const prefix = byDigits.dialCode.replace('+', '')
-      return { country: byDigits, localNumber: digits.slice(prefix.length) }
-    }
-  }
-
   return { country: DEFAULT_COUNTRY, localNumber: value }
 }
 
