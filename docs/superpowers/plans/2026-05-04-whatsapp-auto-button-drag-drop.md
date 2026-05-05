@@ -1,3 +1,363 @@
+# Auto-botón WhatsApp + Drag & Drop — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Agregar un botón de WhatsApp auto-gestionado en action_buttons (sincronizado desde el campo whatsapp del perfil) y drag & drop para reordenar todos los botones desde la pestaña "Mis Botones".
+
+**Architecture:** Una columna `is_managed` en `action_buttons` identifica el botón de WhatsApp auto-creado. `updateProfile` sincroniza el botón al guardar. `@dnd-kit/sortable` maneja el reordenamiento en el cliente, con una nueva server action `saveButtonOrder` que persiste el orden.
+
+**Tech Stack:** Next.js 16 Server Actions, Supabase, @dnd-kit/core + @dnd-kit/sortable + @dnd-kit/utilities, TypeScript.
+
+---
+
+## Mapa de archivos
+
+| Acción | Archivo | Cambio |
+|---|---|---|
+| DB migration | Supabase MCP | Agregar `is_managed boolean NOT NULL DEFAULT false` a `action_buttons` |
+| Modificar | `types/ui.types.ts` | Agregar `isManaged?: boolean` a `EditableLink` |
+| Modificar | `lib/utils/adapters.ts` | Mapear `is_managed` → `isManaged` en `UILinkItem` y `dbButtonToLinkItem` |
+| Modificar | `lib/actions/buttons.ts` | Nueva action exportada `saveButtonOrder` |
+| Modificar | `lib/actions/profile.ts` | Sync del botón WhatsApp tras guardar perfil |
+| Modificar | `components/dashboard/DashboardClient.tsx` | Handler `handleReorderLinks`, import `saveButtonOrder`, nueva prop |
+| Modificar | `features/dashboard/sections/dashboard-botones-section.tsx` | DnD, managed badge, quitar whatsapp del modal |
+
+---
+
+## Task 1: DB Migration — columna is_managed
+
+**Files:**
+- DB migration via Supabase MCP
+
+- [ ] **Step 1: Aplicar migración**
+
+Ejecutar via Supabase MCP (`project_id: ralerpzljxcxivrdqlxj`):
+
+```sql
+ALTER TABLE action_buttons
+  ADD COLUMN IF NOT EXISTS is_managed boolean NOT NULL DEFAULT false;
+```
+
+- [ ] **Step 2: Verificar columna**
+
+```sql
+SELECT column_name, data_type, column_default
+FROM information_schema.columns
+WHERE table_name = 'action_buttons' AND column_name = 'is_managed';
+```
+
+Expected: una fila con `is_managed | boolean | false`.
+
+---
+
+## Task 2: Actualizar tipos y adapter
+
+**Files:**
+- Modify: `types/ui.types.ts`
+- Modify: `lib/utils/adapters.ts`
+
+- [ ] **Step 1: Agregar `isManaged` a `EditableLink` en types/ui.types.ts**
+
+```typescript
+export type EditableLink = {
+  id: string
+  title: string
+  url: string
+  icon: LinkIcon
+  isManaged?: boolean
+}
+```
+
+- [ ] **Step 2: Agregar `isManaged` a `UILinkItem` en lib/utils/adapters.ts**
+
+```typescript
+export type UILinkItem = {
+  id: string
+  title: string
+  url: string
+  icon: string
+  isManaged?: boolean
+}
+```
+
+- [ ] **Step 3: Actualizar `dbButtonToLinkItem` en lib/utils/adapters.ts**
+
+Reemplazar la función completa:
+
+```typescript
+export function dbButtonToLinkItem(
+  button: Pick<DBButton, 'id' | 'label' | 'url' | 'icon'> & { is_managed?: boolean }
+): UILinkItem {
+  return {
+    id: button.id,
+    title: button.label,
+    url: button.url,
+    icon: button.icon,
+    isManaged: button.is_managed ?? false,
+  }
+}
+```
+
+- [ ] **Step 4: Actualizar la firma de `dbProfileToUIProfile` en lib/utils/adapters.ts**
+
+Cambiar la firma del parámetro `buttons` para incluir `is_managed`:
+
+```typescript
+export function dbProfileToUIProfile(
+  profile: DBProfile,
+  buttons: (Pick<DBButton, 'id' | 'label' | 'url' | 'icon'> & { is_managed?: boolean })[] = []
+): UIUserProfile {
+```
+
+El cuerpo no cambia — el spread ya incluye `isManaged` desde el paso anterior.
+
+- [ ] **Step 5: Actualizar el SELECT de action_buttons en el dashboard page**
+
+En `app/(dashboard)/dashboard/page.tsx`, buscar el SELECT de `action_buttons` y agregar `is_managed`:
+
+```typescript
+// Buscar la query de action_buttons y cambiar el select a:
+.select('id, label, url, icon, sort_order, is_managed')
+```
+
+- [ ] **Step 6: Actualizar el SELECT en la página pública**
+
+En `app/(public)/[username]/page.tsx`, buscar el SELECT de `action_buttons` y agregar `is_managed`:
+
+```typescript
+.select('id, label, url, icon, sort_order, is_managed')
+```
+
+- [ ] **Step 7: Verificar tipos**
+
+```bash
+cd C:\Users\Alejandro\Desktop\Elaris\mvp-dynamic-cards && npx tsc --noEmit 2>&1 | grep -v ".next" | grep -v "node_modules" | grep -v "cmdk" | head -20
+```
+
+Expected: sin errores en los archivos modificados.
+
+---
+
+## Task 3: Nueva server action `saveButtonOrder`
+
+**Files:**
+- Modify: `lib/actions/buttons.ts`
+
+- [ ] **Step 1: Agregar la función exportada al final del archivo**
+
+Agregar después de `deleteButton`:
+
+```typescript
+export async function saveButtonOrder(
+  orderedIds: string[]
+): Promise<{ success: true } | { error: string }> {
+  const { user, profile } = await requireActiveUser()
+  const supabase = await createClient()
+
+  if (orderedIds.length === 0) return { success: true }
+
+  // Verify all IDs belong to this user
+  const { data: existing } = await (supabase as any)
+    .from('action_buttons')
+    .select('id')
+    .eq('profile_id', user.id)
+    .in('id', orderedIds)
+
+  if (!existing || existing.length !== orderedIds.length) {
+    return { error: 'Uno o más botones no pertenecen a tu perfil.' }
+  }
+
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      (supabase as any)
+        .from('action_buttons')
+        .update({ sort_order: index })
+        .match({ id, profile_id: user.id })
+    )
+  )
+
+  revalidatePath('/dashboard')
+  revalidatePath(`/${profile.username}`)
+  return { success: true }
+}
+```
+
+- [ ] **Step 2: Verificar tipos**
+
+```bash
+npx tsc --noEmit 2>&1 | grep "buttons.ts"
+```
+
+Expected: sin errores.
+
+---
+
+## Task 4: Sync del botón WhatsApp en updateProfile
+
+**Files:**
+- Modify: `lib/actions/profile.ts`
+
+- [ ] **Step 1: Agregar la lógica de sync después de la limpieza de imágenes**
+
+En `lib/actions/profile.ts`, reemplazar el bloque final de `updateProfile` (desde `revalidatePath('/dashboard')` hasta el `return { success: true }`):
+
+```typescript
+  await Promise.all([
+    current?.avatar_url && current.avatar_url !== avatar_url
+      ? deleteCloudinaryImage(current.avatar_url)
+      : Promise.resolve(),
+    current?.banner_url && current.banner_url !== banner_url
+      ? deleteCloudinaryImage(current.banner_url)
+      : Promise.resolve(),
+  ])
+
+  // Sync managed WhatsApp button
+  await syncWhatsAppButton(supabase, user.id, whatsapp ?? null)
+
+  revalidatePath('/dashboard')
+  revalidatePath(`/${profile.username}`)
+  return { success: true }
+```
+
+- [ ] **Step 2: Agregar la función `syncWhatsAppButton` antes de `updateProfile`**
+
+```typescript
+async function syncWhatsAppButton(
+  supabase: any,
+  profileId: string,
+  whatsapp: string | null | undefined
+): Promise<void> {
+  const { data: existing } = await supabase
+    .from('action_buttons')
+    .select('id')
+    .match({ profile_id: profileId, icon: 'whatsapp', is_managed: true })
+    .maybeSingle()
+
+  if (whatsapp) {
+    const normalizedNumber = whatsapp.replace(/\D/g, '')
+    const whatsappUrl = `https://wa.me/${normalizedNumber}`
+
+    if (existing) {
+      await supabase
+        .from('action_buttons')
+        .update({ url: whatsappUrl, label: 'WhatsApp' })
+        .match({ id: existing.id, profile_id: profileId })
+    } else {
+      const { data: maxBtn } = await supabase
+        .from('action_buttons')
+        .select('sort_order')
+        .eq('profile_id', profileId)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      const { count } = await supabase
+        .from('action_buttons')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_id', profileId)
+
+      if (count !== null && count >= 6) return
+
+      await supabase.from('action_buttons').insert({
+        id: crypto.randomUUID(),
+        profile_id: profileId,
+        label: 'WhatsApp',
+        url: whatsappUrl,
+        icon: 'whatsapp',
+        is_managed: true,
+        sort_order: maxBtn ? maxBtn.sort_order + 1 : 0,
+        is_active: true,
+      })
+    }
+  } else if (existing) {
+    await supabase
+      .from('action_buttons')
+      .delete()
+      .match({ id: existing.id, profile_id: profileId })
+  }
+}
+```
+
+- [ ] **Step 3: Verificar tipos**
+
+```bash
+npx tsc --noEmit 2>&1 | grep "profile.ts"
+```
+
+Expected: sin errores.
+
+---
+
+## Task 5: Actualizar DashboardClient
+
+**Files:**
+- Modify: `components/dashboard/DashboardClient.tsx`
+
+- [ ] **Step 1: Agregar `saveButtonOrder` al import de actions**
+
+Cambiar la línea de imports de buttons:
+
+```typescript
+import { createButton, updateButton, deleteButton, saveButtonOrder } from '@/lib/actions/buttons'
+```
+
+- [ ] **Step 2: Agregar el handler `handleReorderLinks` después de `saveLinks`**
+
+```typescript
+  const handleReorderLinks = async (orderedIds: string[]) => {
+    setLinks(prev => {
+      const map = new Map(prev.map(l => [l.id, l]))
+      return orderedIds.map(id => map.get(id)).filter(Boolean) as EditableLink[]
+    })
+    const res = await saveButtonOrder(orderedIds)
+    if (res && 'error' in res) {
+      setLinksStatus({ state: 'error', message: res.error as string })
+    }
+  }
+```
+
+- [ ] **Step 3: Pasar `onReorderLinks` a DashboardBotonesSection**
+
+Buscar el bloque `{activeSection === 'botones' && (` y agregar la prop:
+
+```tsx
+{activeSection === 'botones' && (
+  <DashboardBotonesSection
+    links={links}
+    linksStatus={linksStatus}
+    onRemoveLink={removeLink}
+    onUpdateLink={updateLink}
+    onAddLink={addLink}
+    onSaveLinks={saveLinks}
+    onReorderLinks={handleReorderLinks}
+  />
+)}
+```
+
+- [ ] **Step 4: Verificar tipos**
+
+```bash
+npx tsc --noEmit 2>&1 | grep "DashboardClient"
+```
+
+Expected: sin errores (puede haber error temporal sobre prop faltante en BotonesSection hasta Task 6).
+
+---
+
+## Task 6: Botones section con Drag & Drop
+
+**Files:**
+- Modify: `features/dashboard/sections/dashboard-botones-section.tsx`
+
+- [ ] **Step 1: Instalar @dnd-kit**
+
+```bash
+cd C:\Users\Alejandro\Desktop\Elaris\mvp-dynamic-cards && npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
+```
+
+- [ ] **Step 2: Reemplazar el archivo completo**
+
+```typescript
 'use client'
 
 import { useState } from 'react'
@@ -423,3 +783,36 @@ export function DashboardBotonesSection({
     </div>
   )
 }
+```
+
+- [ ] **Step 3: Verificar tipos y lint**
+
+```bash
+npx tsc --noEmit 2>&1 | grep -v ".next" | grep -v "node_modules" | grep -v "cmdk" | head -20
+```
+
+Expected: sin errores.
+
+- [ ] **Step 4: Probar en dev server**
+
+```bash
+npm run dev
+```
+
+Verificar en `http://localhost:3000/dashboard`:
+
+1. **Auto-botón WhatsApp:**
+   - Ir a "Mi Perfil", ingresar un número de WhatsApp (ej. seleccionar Perú +51, tipear 987654321), guardar
+   - Ir a "Mis Botones" — debe aparecer el botón WhatsApp con el ícono de candado 🔒 y "Mi Perfil"
+   - El botón de WhatsApp no tiene campo de URL ni botón "Eliminar"
+   - La tarjeta pública (`/[username]`) muestra el botón WhatsApp funcional
+   - Borrar el número de WhatsApp en Mi Perfil, guardar → el botón desaparece de Mis Botones
+
+2. **Drag & Drop:**
+   - Arrastrar cualquier botón (incluyendo el de WhatsApp) a otra posición
+   - El orden se actualiza visualmente de inmediato
+   - Recargar la página — el orden persiste
+   - En mobile (DevTools responsive) — arrastrar con touch funciona después de 250ms de press
+
+3. **Modal "Añadir botón":**
+   - Abrir el modal — WhatsApp NO aparece entre las opciones

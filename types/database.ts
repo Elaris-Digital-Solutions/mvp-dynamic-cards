@@ -48,6 +48,7 @@ export type Database = {
           icon: string
           id: string
           is_active: boolean
+          is_managed: boolean
           label: string
           profile_id: string | null
           sort_order: number
@@ -60,6 +61,7 @@ export type Database = {
           icon?: string
           id?: string
           is_active?: boolean
+          is_managed?: boolean
           label: string
           profile_id?: string | null
           sort_order?: number
@@ -72,6 +74,7 @@ export type Database = {
           icon?: string
           id?: string
           is_active?: boolean
+          is_managed?: boolean
           label?: string
           profile_id?: string | null
           sort_order?: number

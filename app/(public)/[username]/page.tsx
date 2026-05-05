@@ -34,7 +34,7 @@ const getProfileData = cache(async (username: string) => {
 
   const { data: buttons } = await supabase
     .from('action_buttons')
-    .select('id, label, url, icon, sort_order')
+    .select('id, label, url, icon, sort_order, is_managed')
     .eq('profile_id', profile.id)
     .eq('is_active', true)
     .order('sort_order', { ascending: true })

@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     getCurrentProfile(),
     (supabase as any)
       .from('action_buttons')
-      .select('*')
+      .select('id, label, url, icon, sort_order, is_managed')
       .eq('profile_id', user.id)
       .order('sort_order', { ascending: true }),
   ])

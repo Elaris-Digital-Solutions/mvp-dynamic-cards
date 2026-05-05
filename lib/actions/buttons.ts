@@ -142,3 +142,36 @@ export async function deleteButton(id: string) {
   revalidatePath(`/${profile.username}`)
   return { success: true }
 }
+
+export async function saveButtonOrder(
+  orderedIds: string[]
+): Promise<{ success: true } | { error: string }> {
+  const { user, profile } = await requireActiveUser()
+  const supabase = await createClient()
+
+  if (orderedIds.length === 0) return { success: true }
+
+  // Verify all IDs belong to this user
+  const { data: existing } = await (supabase as any)
+    .from('action_buttons')
+    .select('id')
+    .eq('profile_id', user.id)
+    .in('id', orderedIds)
+
+  if (!existing || existing.length !== orderedIds.length) {
+    return { error: 'Uno o más botones no pertenecen a tu perfil.' }
+  }
+
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      (supabase as any)
+        .from('action_buttons')
+        .update({ sort_order: index })
+        .match({ id, profile_id: user.id })
+    )
+  )
+
+  revalidatePath('/dashboard')
+  revalidatePath(`/${profile.username}`)
+  return { success: true }
+}

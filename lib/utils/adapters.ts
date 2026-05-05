@@ -28,6 +28,7 @@ export type UILinkItem = {
   title: string
   url: string
   icon: string
+  isManaged?: boolean
 }
 
 export type UIUserProfile = {
@@ -59,12 +60,15 @@ export type UIUserProfile = {
  * Fields intentionally excluded (backend-internal):
  *   profile_id, sort_order, is_active, created_at
  */
-export function dbButtonToLinkItem(button: Pick<DBButton, 'id' | 'label' | 'url' | 'icon'>): UILinkItem {
+export function dbButtonToLinkItem(
+  button: Pick<DBButton, 'id' | 'label' | 'url' | 'icon'> & { is_managed?: boolean }
+): UILinkItem {
   return {
     id: button.id,
     title: button.label,
     url: button.url,
     icon: button.icon,
+    isManaged: button.is_managed ?? false,
   }
 }
 
@@ -88,7 +92,7 @@ export function dbButtonToLinkItem(button: Pick<DBButton, 'id' | 'label' | 'url'
  */
 export function dbProfileToUIProfile(
   profile: DBProfile,
-  buttons: Pick<DBButton, 'id' | 'label' | 'url' | 'icon'>[] = []
+  buttons: (Pick<DBButton, 'id' | 'label' | 'url' | 'icon'> & { is_managed?: boolean })[] = []
 ): UIUserProfile {
   const firstName = profile.first_name ?? ''
   const lastName = profile.last_name ?? ''

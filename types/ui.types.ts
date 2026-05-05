@@ -22,6 +22,7 @@ export type EditableLink = {
   title: string
   url: string
   icon: LinkIcon
+  isManaged?: boolean
 }
 
 export type UserProfile = {
@@ -53,7 +54,6 @@ export type ProfileFormState = {
   bio: string
   profileImage: string
   bannerImage: string
-  useSameWhatsApp: boolean
 }
 
 export type SaveState = 'idle' | 'saving' | 'success' | 'error'

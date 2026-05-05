@@ -27,9 +27,8 @@ export function generateVCard(contact: VCardContact): string {
   const { firstName, lastName, title, company, phone, whatsapp, email } = contact
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
 
-  // Prefer whatsapp field — more likely to carry the international +prefix needed for auto-linking
-  const rawPhone = whatsapp || phone
-  const normalizedPhone = rawPhone ? normalizePhone(rawPhone) : null
+  const normalizedPhone = phone ? normalizePhone(phone) : null
+  const normalizedWhatsapp = whatsapp ? normalizePhone(whatsapp) : null
 
   const lines: string[] = [
     'BEGIN:VCARD',
@@ -40,7 +39,15 @@ export function generateVCard(contact: VCardContact): string {
 
   if (company) lines.push(`ORG:${escapeField(company)}`)
   if (title) lines.push(`TITLE:${escapeField(title)}`)
-  if (normalizedPhone) lines.push(`TEL;TYPE=CELL,VOICE:${normalizedPhone}`)
+
+  if (normalizedWhatsapp && normalizedPhone && normalizedPhone !== normalizedWhatsapp) {
+    lines.push(`TEL;TYPE=WORK:${normalizedPhone}`)
+    lines.push(`TEL;TYPE=CELL:${normalizedWhatsapp}`)
+  } else {
+    const single = normalizedWhatsapp || normalizedPhone
+    if (single) lines.push(`TEL;TYPE=CELL:${single}`)
+  }
+
   if (email) lines.push(`EMAIL:${escapeField(email)}`)
 
   lines.push('END:VCARD')

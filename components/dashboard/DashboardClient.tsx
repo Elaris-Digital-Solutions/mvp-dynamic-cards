@@ -13,7 +13,7 @@ import { useLogout } from '@/lib/auth/useLogout'
 import { updateProfile, updateTemplate, deleteAccount } from '@/lib/actions/profile'
 import { UsernameSetupModal } from '@/components/dashboard/UsernameSetupModal'
 import { compressImage } from '@/lib/utils/compress-image'
-import { createButton, updateButton, deleteButton } from '@/lib/actions/buttons'
+import { createButton, updateButton, deleteButton, saveButtonOrder } from '@/lib/actions/buttons'
 import type { UIUserProfile, UILinkItem } from '@/lib/utils/adapters'
 import type {
   DashboardSection,
@@ -69,7 +69,6 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
     bio: initialProfile.bio ?? '',
     profileImage: initialProfile.profileImage ?? '',
     bannerImage: initialProfile.bannerImage ?? '',
-    useSameWhatsApp: true,
   })
 
   // ── Links state ────────────────────────────────────────────────────────────
@@ -188,7 +187,7 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
     formData.append('company', profileForm.company)
     formData.append('bio', profileForm.bio)
     formData.append('phone', profileForm.phone)
-    formData.append('whatsapp', profileForm.useSameWhatsApp ? profileForm.phone : profileForm.whatsapp)
+    formData.append('whatsapp', profileForm.whatsapp)
     formData.append('avatar_url', avatarUrl)
     formData.append('banner_url', bannerUrl)
 
@@ -255,12 +254,12 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
 
     const initialLinks = initialProfile.links ?? []
     const currentIds = new Set(links.map((l: EditableLink) => l.id))
-    
-    // Deletions -> ID exists in initial but not current
-    const deletedLinks = initialLinks.filter((l: UILinkItem) => !currentIds.has(l.id))
 
-    // Handle new and updated links
-    for (const link of links) {
+    // Deletions -> ID exists in initial but not current (skip managed buttons)
+    const deletedLinks = initialLinks.filter((l: UILinkItem) => !currentIds.has(l.id) && !l.isManaged)
+
+    // Handle new and updated links (skip managed buttons — synced via profile)
+    for (const link of links.filter((l: EditableLink) => !l.isManaged)) {
       const isNew = !initialLinks.some((l: UILinkItem) => l.id === link.id)
       const formData = new FormData()
       formData.append('id', link.id)
@@ -296,6 +295,19 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
     }
 
     setLinksStatus({ state: 'success', message: 'Botones actualizados correctamente.' })
+  }
+
+  const handleReorderLinks = async (orderedIds: string[]) => {
+    const previous = links
+    setLinks(prev => {
+      const map = new Map(prev.map(l => [l.id, l]))
+      return orderedIds.map(id => map.get(id)).filter(Boolean) as EditableLink[]
+    })
+    const res = await saveButtonOrder(orderedIds)
+    if (res && 'error' in res) {
+      setLinks(previous)
+      setLinksStatus({ state: 'error', message: res.error as string })
+    }
   }
 
   const activeTemplate =
@@ -358,6 +370,7 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
               onUpdateLink={updateLink}
               onAddLink={addLink}
               onSaveLinks={saveLinks}
+              onReorderLinks={handleReorderLinks}
             />
           )}
 

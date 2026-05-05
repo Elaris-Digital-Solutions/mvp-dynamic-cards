@@ -11,6 +11,61 @@ import { deleteCloudinaryImage } from '@/lib/utils/cloudinary'
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
+async function syncWhatsAppButton(
+  supabase: any,
+  profileId: string,
+  whatsapp: string | null | undefined
+): Promise<void> {
+  const { data: existing } = await supabase
+    .from('action_buttons')
+    .select('id')
+    .match({ profile_id: profileId, icon: 'whatsapp', is_managed: true })
+    .maybeSingle()
+
+  if (whatsapp) {
+    const normalizedNumber = whatsapp.replace(/\D/g, '')
+    const whatsappUrl = `https://wa.me/${normalizedNumber}`
+
+    if (existing) {
+      await supabase
+        .from('action_buttons')
+        .update({ url: whatsappUrl, label: 'WhatsApp' })
+        .match({ id: existing.id, profile_id: profileId })
+    } else {
+      const { data: maxBtn } = await supabase
+        .from('action_buttons')
+        .select('sort_order')
+        .eq('profile_id', profileId)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      const { count } = await supabase
+        .from('action_buttons')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_id', profileId)
+
+      if (count !== null && count >= 6) return
+
+      await supabase.from('action_buttons').insert({
+        id: crypto.randomUUID(),
+        profile_id: profileId,
+        label: 'WhatsApp',
+        url: whatsappUrl,
+        icon: 'whatsapp',
+        is_managed: true,
+        sort_order: maxBtn ? maxBtn.sort_order + 1 : 0,
+        is_active: true,
+      })
+    }
+  } else if (existing) {
+    await supabase
+      .from('action_buttons')
+      .delete()
+      .match({ id: existing.id, profile_id: profileId })
+  }
+}
+
 /**
  * Updates all editable profile fields from a FormData payload.
  *
@@ -42,8 +97,7 @@ export async function updateProfile(
   })
   if (!parsed.success) return { error: parsed.error.issues[0].message }
 
-  const { first_name, last_name, job_title, company, bio, phone, avatar_url, banner_url } = parsed.data
-  const whatsapp = parsed.data.whatsapp || phone
+  const { first_name, last_name, job_title, company, bio, phone, whatsapp, avatar_url, banner_url } = parsed.data
 
   // Fetch current image URLs before overwriting to clean up replaced images afterward
   const { data: current } = await (supabase as any)
@@ -83,6 +137,9 @@ export async function updateProfile(
       ? deleteCloudinaryImage(current.banner_url)
       : Promise.resolve(),
   ])
+
+  // Sync managed WhatsApp button
+  await syncWhatsAppButton(supabase, user.id, whatsapp ?? null)
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)
