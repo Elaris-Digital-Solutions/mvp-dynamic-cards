@@ -228,26 +228,36 @@ export async function deleteAccount(): Promise<{ error?: string }> {
   // Usamos requireAuth (no requireActiveUser) para que cuentas inactivas/vencidas
   // también puedan solicitar su borrado.
   const user = await requireAuth()
-  const supabase = createServiceClient()
+  const serviceClient = createServiceClient()
+  const userClient = await createClient()
 
   // Fetch image URLs before deletion so we can clean up Cloudinary afterward
-  const { data: profileData } = await (supabase.from('profiles') as any)
+  const { data: profileData } = await (serviceClient.from('profiles') as any)
     .select('avatar_url, banner_url')
     .eq('id', user.id)
     .single()
 
-  // Borrar en orden FK: hijos primero
-  await (supabase.from('action_buttons') as any).delete().eq('profile_id', user.id)
-  await (supabase.from('click_events') as any).delete().eq('profile_id', user.id)
-  await (supabase.from('profiles') as any).delete().eq('id', user.id)
+  // Desasociar tarjetas NFC (hardware físico reutilizable — no borrar)
+  await (serviceClient.from('nfc_cards') as any)
+    .update({ profile_id: null, assigned_at: null })
+    .eq('profile_id', user.id)
 
-  const { error } = await supabase.auth.admin.deleteUser(user.id)
+  // Borrar en orden FK: hijos primero
+  await (serviceClient.from('action_buttons') as any).delete().eq('profile_id', user.id)
+  await (serviceClient.from('click_events') as any).delete().eq('profile_id', user.id)
+  await (serviceClient.from('profiles') as any).delete().eq('id', user.id)
+
+  const { error } = await serviceClient.auth.admin.deleteUser(user.id)
   if (error) return { error: error.message }
+
+  // Limpiar la cookie de sesión para que el header no muestre al usuario como logueado
+  await userClient.auth.signOut()
 
   await Promise.all([
     deleteCloudinaryImage(profileData?.avatar_url),
     deleteCloudinaryImage(profileData?.banner_url),
   ])
 
+  revalidatePath('/')
   redirect('/')
 }
