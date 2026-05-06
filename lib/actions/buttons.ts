@@ -162,7 +162,7 @@ export async function saveButtonOrder(
     return { error: 'Uno o más botones no pertenecen a tu perfil.' }
   }
 
-  await Promise.all(
+  const results = await Promise.all(
     orderedIds.map((id, index) =>
       (supabase as any)
         .from('action_buttons')
@@ -170,6 +170,9 @@ export async function saveButtonOrder(
         .match({ id, profile_id: user.id })
     )
   )
+
+  const failed = results.find((r: { error: unknown }) => r.error)
+  if (failed) return { error: 'No se pudo guardar el orden. Intenta de nuevo.' }
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)

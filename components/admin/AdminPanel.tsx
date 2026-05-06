@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Database } from '@/types/database'
 import { UserTable } from '@/components/admin/UserTable'
 import { NFCCardTable } from '@/components/admin/NFCCardTable'
-import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils'
 
 type AdminProfile = Pick<
   Database['public']['Tables']['profiles']['Row'],

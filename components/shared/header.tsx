@@ -36,7 +36,7 @@ export async function Header() {
                 <Link href="/login">Iniciar Sesión</Link>
               </Button>
               <Button asChild variant="default" size="sm">
-                <Link href="/signup">Crear Cuenta</Link>
+                <Link href="/register">Crear Cuenta</Link>
               </Button>
             </>
           )}

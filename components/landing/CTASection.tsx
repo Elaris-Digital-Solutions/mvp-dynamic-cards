@@ -31,7 +31,7 @@ export function CTASection() {
               size="lg"
               className="h-12 px-8 text-base bg-[#0d1e38] hover:bg-[#1a2e4a] text-white border-0 shadow-lg shadow-[#0d1e38]/20"
             >
-              <Link href="/signup">
+              <Link href="/register">
                 Obtener mi tarjeta
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

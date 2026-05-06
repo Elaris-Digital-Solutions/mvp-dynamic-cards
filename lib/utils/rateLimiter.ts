@@ -61,7 +61,7 @@ setInterval(() => {
 function inMemoryLimited(key: string, limit = 30, windowMs = 60_000): boolean {
   const now    = Date.now()
   const cutoff = now - windowMs
-  let bucket   = store.get(key)
+  const bucket = store.get(key)
 
   if (!bucket) {
     store.set(key, { hits: [now] })

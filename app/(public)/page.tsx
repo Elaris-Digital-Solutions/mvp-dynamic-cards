@@ -50,7 +50,7 @@ export default function Home() {
 
           <div className="mt-4 flex items-center justify-center">
             <Button asChild size="lg">
-              <Link href="/signup">Obtener mi tarjeta</Link>
+              <Link href="/register">Obtener mi tarjeta</Link>
             </Button>
           </div>
         </div>
