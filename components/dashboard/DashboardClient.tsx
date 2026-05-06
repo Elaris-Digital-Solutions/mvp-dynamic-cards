@@ -299,21 +299,25 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
       }
     }
 
+    // Persist final order (all buttons now exist in DB)
+    const nonManagedIds = links.filter(l => !l.isManaged).map(l => l.id)
+    if (nonManagedIds.length > 0) {
+      const res = await saveButtonOrder(nonManagedIds)
+      if (res && 'error' in res) {
+        setLinksStatus({ state: 'error', message: res.error as string })
+        return
+      }
+    }
+
     setLinksStatus(INITIAL_STATUS)
     toast.success('Botones actualizados correctamente.')
   }
 
-  const handleReorderLinks = async (orderedIds: string[]) => {
-    const previous = links
+  const handleReorderLinks = (orderedIds: string[]) => {
     setLinks(prev => {
       const map = new Map(prev.map(l => [l.id, l]))
       return orderedIds.map(id => map.get(id)).filter(Boolean) as EditableLink[]
     })
-    const res = await saveButtonOrder(orderedIds)
-    if (res && 'error' in res) {
-      setLinks(previous)
-      setLinksStatus({ state: 'error', message: res.error as string })
-    }
   }
 
   const activeTemplate =

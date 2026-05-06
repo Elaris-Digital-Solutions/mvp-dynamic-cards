@@ -40,7 +40,7 @@ type DashboardBotonesSectionProps = {
   onUpdateLink: (id: string, field: 'title' | 'url' | 'icon', value: string) => void
   onAddLink: (data: { icon: LinkIcon; title: string; url: string }) => void
   onSaveLinks: () => Promise<void>
-  onReorderLinks: (orderedIds: string[]) => Promise<void>
+  onReorderLinks: (orderedIds: string[]) => void
 }
 
 // ─── Link type config ─────────────────────────────────────────────────────────
@@ -79,26 +79,18 @@ const LINK_TYPE_CONFIG: Record<string, LinkTypeConfig> = {
     placeholder: '521234567890',
     labelFixed: true,
   },
-  website: {
+  link: {
     label: 'Sitio Web',
     Icon: Globe,
     urlPrefix: 'https://',
     displayPrefix: 'https://',
     placeholder: 'tudominio.com',
-    labelFixed: true,
-  },
-  link: {
-    label: '',
-    Icon: ExternalLink,
-    urlPrefix: 'https://',
-    displayPrefix: 'https://',
-    placeholder: 'tudominio.com/ruta',
     labelFixed: false,
   },
 }
 
 // WhatsApp excluido — se gestiona desde Datos personales
-const TYPE_ORDER: LinkIcon[] = ['instagram', 'linkedin', 'website', 'link']
+const TYPE_ORDER: LinkIcon[] = ['instagram', 'linkedin', 'link']
 
 // ─── Sortable Button Row ──────────────────────────────────────────────────────
 
@@ -124,7 +116,7 @@ function SortableButtonRow({
 
   const config = LINK_TYPE_CONFIG[link.icon] ?? LINK_TYPE_CONFIG.link
   const { Icon } = config
-  const isCustom = link.icon === 'link'
+  const isCustom = link.icon === 'link' || link.icon === 'website'
 
   return (
     <div

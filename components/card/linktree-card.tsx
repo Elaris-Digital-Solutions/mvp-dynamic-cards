@@ -5,8 +5,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { TEMPLATES } from '@/lib/constants'
 import { montserrat } from '@/lib/fonts'
-import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
-import { Download, ExternalLink, Globe, Mail, MessageCircle, ArrowLeft } from 'lucide-react'
+import { IconBrandInstagram, IconBrandLinkedin, IconBrandWhatsapp } from '@tabler/icons-react'
+import { Download, ExternalLink, Globe, Mail, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import type { UserProfile } from '@/types/ui.types'
 import { generateVCard } from '@/lib/utils/generate-vcard'
@@ -45,10 +45,16 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
 
   const socialIcons: Record<string, ReactNode> = {
     linkedin: <IconBrandLinkedin className="w-5 h-5" />,
-    whatsapp: <MessageCircle className="w-5 h-5" />,
+    whatsapp: <IconBrandWhatsapp className="w-5 h-5" />,
     instagram: <IconBrandInstagram className="w-5 h-5" />,
     website: <Globe className="w-5 h-5" />,
     link: <Globe className="w-5 h-5" />,
+  }
+
+  const friendlyLabels: Record<string, string> = {
+    linkedin: 'Conectemos en LinkedIn',
+    instagram: 'Sígueme en Instagram',
+    whatsapp: 'Hablemos por WhatsApp',
   }
 
   const isLightTemplate = (template.textStyle as string) === 'dark'
@@ -248,7 +254,7 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
                 className="group flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors hover:bg-white/[0.04] animate-in slide-in-from-bottom-4 fade-in duration-500 fill-mode-both"
               >
                 <span className="opacity-85">{socialIcons[link.icon] || <Globe className="w-5 h-5" />}</span>
-                <span className="font-semibold text-base flex-1">{link.title}</span>
+                <span className="font-semibold text-base flex-1">{friendlyLabels[link.icon] ?? link.title}</span>
                 <ExternalLink className="w-4 h-4 opacity-70 group-hover:opacity-100" />
               </a>
             ))}
