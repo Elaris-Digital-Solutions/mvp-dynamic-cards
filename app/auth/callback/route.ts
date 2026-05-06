@@ -8,20 +8,15 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') as 'signup' | 'recovery' | 'email' | null
   const next = searchParams.get('next') ?? '/dashboard'
 
-  console.log('[callback] url:', request.url)
-  console.log('[callback] code:', code, 'tokenHash:', tokenHash, 'type:', type)
-
   const supabase = await createClient()
 
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
-    console.log('[callback] verifyOtp error:', error?.message, error?.code)
     if (error) {
       return NextResponse.redirect(`${origin}/login?error=link-expirado`)
     }
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    console.log('[callback] exchangeCode error:', error?.message, error?.code)
     if (error) {
       return NextResponse.redirect(`${origin}/login?error=link-expirado`)
     }

@@ -54,6 +54,7 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
   const [needsUsernameSetup, setNeedsUsernameSetup] = useState(
     () => !!initialProfile.username?.startsWith('_tmp_')
   )
+  const [username, setUsername] = useState(initialProfile.username ?? '')
 
   // ── Section state ──────────────────────────────────────────────────────────
   const [activeSection, setActiveSection] = useState<DashboardSection>('inicio')
@@ -324,11 +325,9 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
     <div className="flex flex-col md:flex-row min-h-screen md:h-screen animate-in fade-in duration-700 ease-out">
       {needsUsernameSetup && (
         <UsernameSetupModal
-          onSuccess={(username) => {
+          onSuccess={(newUsername) => {
             setNeedsUsernameSetup(false)
-            setProfileForm((prev: ProfileFormState) => ({ ...prev }))
-            // Update sidebar link
-            initialProfile.username = username
+            setUsername(newUsername)
           }}
         />
       )}
@@ -338,7 +337,7 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
         userEmail={initialProfile.email}
         onLogout={handleLogout}
         isAdmin={isAdmin}
-        username={initialProfile.username}
+        username={username}
       />
 
       <main className="flex-1 overflow-auto bg-background p-4 md:p-6 animate-in slide-in-from-bottom-4 duration-700 ease-out delay-150 fill-mode-both">
@@ -392,8 +391,8 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
 
           {activeSection === 'cuenta' && (
             <DashboardCuentaSection
-              username={initialProfile.username ?? ''}
-              onDeleteAccount={async () => { await deleteAccount() }}
+              username={username}
+              onDeleteAccount={deleteAccount}
             />
           )}
 

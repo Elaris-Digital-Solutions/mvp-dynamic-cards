@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 
 interface Props {
   username: string
-  onDeleteAccount: () => Promise<void>
+  onDeleteAccount: () => Promise<{ error?: string } | undefined>
 }
 
 export function DashboardCuentaSection({ username, onDeleteAccount }: Props) {
@@ -20,12 +20,12 @@ export function DashboardCuentaSection({ username, onDeleteAccount }: Props) {
   const handleDelete = async () => {
     setIsDeleting(true)
     setError('')
-    try {
-      await onDeleteAccount()
-    } catch {
+    const result = await onDeleteAccount()
+    if (result?.error) {
       setError('No se pudo eliminar la cuenta. Intenta de nuevo.')
       setIsDeleting(false)
     }
+    // Si no hay error, el Server Action llama redirect() internamente y navega.
   }
 
   return (

@@ -27,16 +27,16 @@ const httpUrl = z
   .string()
   .trim()
   .refine(v => {
-    // Rechazar explícitamente schemes peligrosos antes de prefijar (ej: javascript:, data:)
     const lower = v.toLowerCase()
-    if (!lower.startsWith('http://') && !lower.startsWith('https://')) return true
-    return lower.startsWith('http://') || lower.startsWith('https://')
+    // Rechazar explícitamente schemes peligrosos (javascript:, data:, vbscript:, etc.)
+    if (/^[a-z][a-z0-9+\-.]*:/i.test(lower) && !lower.startsWith('http://') && !lower.startsWith('https://')) {
+      return false
+    }
+    return true
   }, 'Solo se permiten URLs http o https')
   .transform(v => {
     const lower = v.toLowerCase()
     if (!lower.startsWith('http://') && !lower.startsWith('https://')) {
-      // Rechazar cualquier scheme conocido que no sea http/https
-      if (/^[a-z][a-z0-9+\-.]*:/i.test(v)) throw new Error('Scheme de URL no permitido')
       return `https://${v}`
     }
     return v
