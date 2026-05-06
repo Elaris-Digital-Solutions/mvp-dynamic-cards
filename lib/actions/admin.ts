@@ -129,6 +129,60 @@ export async function toggleNFCCard(id: string, is_active: boolean) {
   return { success: true }
 }
 
+export async function unlinkNFCCard(id: string) {
+  const { user } = await requireAdmin()
+  const supabase = createServiceClient()
+  const { error } = await (supabase.from('nfc_cards') as any)
+    .update({ profile_id: null, assigned_at: null })
+    .eq('id', id)
+  if (error) return { error: 'No se pudo desvincular la tarjeta.' }
+  await writeAuditLog(user.id, 'unlink_nfc', id, {})
+  revalidatePath('/admin')
+  return { success: true }
+}
+
+export async function updateNFCCard(id: string, formData: FormData) {
+  const { user } = await requireAdmin()
+  const supabase = createServiceClient()
+
+  const rawUid = (formData.get('card_uid') as string | null) ?? ''
+  const normalizedUid = rawUid.replace(/[:\-\s]/g, '').toUpperCase()
+  if (!normalizedUid) return { error: 'El UID es requerido.' }
+
+  const { data: conflict } = await (supabase.from('nfc_cards') as any)
+    .select('id')
+    .eq('card_uid', normalizedUid)
+    .neq('id', id)
+    .maybeSingle()
+  if (conflict) return { error: 'Ya existe una tarjeta registrada con ese UID.' }
+
+  const profile_id = (formData.get('profile_id') as string | null) || null
+
+  if (profile_id) {
+    const { data: targetProfile } = await (supabase.from('profiles') as any)
+      .select('is_active')
+      .eq('id', profile_id)
+      .single() as { data: { is_active: boolean } | null, error: unknown }
+    if (!targetProfile) return { error: 'Perfil no encontrado.' }
+    if (!targetProfile.is_active) return { error: 'El perfil está inactivo. Actívalo primero.' }
+  }
+
+  const notes = (formData.get('notes') as string | null) || null
+  const { error } = await (supabase.from('nfc_cards') as any)
+    .update({
+      card_uid: normalizedUid,
+      profile_id,
+      notes,
+      assigned_at: profile_id ? new Date().toISOString() : null,
+    })
+    .eq('id', id)
+  if (error) return { error: 'No se pudo actualizar la tarjeta.' }
+
+  await writeAuditLog(user.id, 'update_nfc', id, { card_uid: normalizedUid, profile_id })
+  revalidatePath('/admin')
+  return { success: true }
+}
+
 export async function deleteNFCCard(id: string) {
   const { user } = await requireAdmin()
   const supabase = createServiceClient()

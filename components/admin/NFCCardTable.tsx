@@ -1,9 +1,9 @@
 'use client'
 
-import { processNFCCard, toggleNFCCard, deleteNFCCard } from '@/lib/actions/admin'
+import { processNFCCard, toggleNFCCard, deleteNFCCard, unlinkNFCCard, updateNFCCard } from '@/lib/actions/admin'
 import { Database } from '@/types/database'
-import { useState, useTransition, useEffect } from 'react'
-import { Plus, X } from 'lucide-react'
+import { useState, useTransition, useEffect, Fragment } from 'react'
+import { Plus, X, Pencil } from 'lucide-react'
 import { UserSearchAutocomplete } from '@/components/admin/UserSearchAutocomplete'
 
 type AdminNFCCard = Pick<
@@ -12,7 +12,7 @@ type AdminNFCCard = Pick<
 >
 type AdminProfile = Pick<
   Database['public']['Tables']['profiles']['Row'],
-  'id' | 'full_name' | 'username'
+  'id' | 'full_name' | 'username' | 'is_active'
 >
 
 const PAGE_SIZE = 20
@@ -24,6 +24,7 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
   const [baseUrl, setBaseUrl] = useState('')
   const [page, setPage] = useState(0)
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   const totalPages = Math.ceil(cards.length / PAGE_SIZE)
   const paginated = cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -44,7 +45,6 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
     setError(null)
     const formData = new FormData(e.currentTarget)
     const target = e.currentTarget
-
     startTransition(async () => {
       const res = await processNFCCard(formData)
       if (res?.error) setError(res.error)
@@ -52,10 +52,29 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
     })
   }
 
+  const handleEdit = (e: React.FormEvent<HTMLFormElement>, id: string) => {
+    e.preventDefault()
+    setError(null)
+    const formData = new FormData(e.currentTarget)
+    startTransition(async () => {
+      const res = await updateNFCCard(id, formData)
+      if (res?.error) setError(res.error)
+      else setEditingId(null)
+    })
+  }
+
   const handleToggle = (id: string, currentStatus: boolean) => {
     setError(null)
     startTransition(async () => {
       const res = await toggleNFCCard(id, !currentStatus)
+      if (res?.error) setError(res.error)
+    })
+  }
+
+  const handleUnlink = (id: string) => {
+    setError(null)
+    startTransition(async () => {
+      const res = await unlinkNFCCard(id)
       if (res?.error) setError(res.error)
     })
   }
@@ -127,7 +146,7 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
       {showForm && (
         <div className="bg-card rounded-lg border border-border p-6 max-w-5xl">
           <h2 className="text-lg font-bold mb-4 text-foreground border-b border-border pb-3">
-            Vincular Nueva Tarjeta Física 
+            Vincular Nueva Tarjeta Física
           </h2>
           <form onSubmit={handleProcess} className="flex flex-col space-y-5 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -138,7 +157,7 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
                 <input
                   required
                   name="card_uid"
-                  placeholder="Ingresa el código..."
+                  placeholder="Ej: A1B2C3D4 o A1:B2:C3:D4"
                   className="w-full border border-border bg-background text-foreground placeholder:text-muted-foreground/50 p-2.5 rounded text-sm focus:ring-1 focus:ring-ring focus:outline-none font-mono transition-colors"
                 />
               </div>
@@ -196,64 +215,144 @@ export function NFCCardTable({ cards, profiles }: { cards: AdminNFCCard[], profi
             </thead>
             <tbody>
               {paginated.map(c => (
-                <tr key={c.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
-                  <td className="px-6 py-4 bg-muted/30 border-r border-border/30 align-top min-w-[280px]">
-                    <div className="flex flex-col space-y-2.5">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Card ID:</span>
-                        <div className="font-mono font-semibold text-foreground">{c.card_uid}</div>
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">URL:</span>
-                        <div
-                          className="font-mono text-xs text-accent-foreground/80 truncate max-w-[280px] sm:max-w-xs block"
-                          title={`${baseUrl}/nfc/${c.card_uid}`}
-                        >
-                          {baseUrl ? `${baseUrl}/nfc/${c.card_uid}` : `.../nfc/${c.card_uid}`}
+                <Fragment key={c.id}>
+                  <tr className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4 bg-muted/30 border-r border-border/30 align-top min-w-[280px]">
+                      <div className="flex flex-col space-y-2.5">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Card ID:</span>
+                          <div className="font-mono font-semibold text-foreground">{c.card_uid}</div>
                         </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">URL:</span>
+                          <div
+                            className="font-mono text-xs text-accent-foreground/80 truncate max-w-[280px] sm:max-w-xs block"
+                            title={`${baseUrl}/nfc/${c.card_uid}`}
+                          >
+                            {baseUrl ? `${baseUrl}/nfc/${c.card_uid}` : `.../nfc/${c.card_uid}`}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyUrl(c.card_uid)}
+                          className={`cursor-pointer self-start text-[11px] font-bold uppercase tracking-wider border px-3 py-1.5 rounded transition flex items-center space-x-1 ${
+                            copiedId === c.card_uid
+                              ? 'bg-accent/60 text-accent-foreground border-border'
+                              : 'bg-background hover:bg-muted text-muted-foreground border-border'
+                          }`}
+                        >
+                          {copiedId === c.card_uid ? <span>¡Copiado!</span> : <span>Copiar URL</span>}
+                        </button>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 align-middle">
                       <button
-                        type="button"
-                        onClick={() => handleCopyUrl(c.card_uid)}
-                        className={`cursor-pointer self-start text-[11px] font-bold uppercase tracking-wider border px-3 py-1.5 rounded transition flex items-center space-x-1 ${
-                          copiedId === c.card_uid
-                            ? 'bg-accent/60 text-accent-foreground border-border'
-                            : 'bg-background hover:bg-muted text-muted-foreground border-border'
+                        onClick={() => handleToggle(c.id, c.is_active ?? false)}
+                        disabled={isPending}
+                        className={`cursor-pointer disabled:cursor-not-allowed px-3 py-1.5 text-[11px] font-extrabold tracking-wider rounded border transition-colors disabled:opacity-50 ${
+                          c.is_active
+                            ? 'bg-accent/50 text-accent-foreground border-border hover:bg-accent/70'
+                            : 'bg-muted text-muted-foreground/60 border-border/30 hover:bg-muted/70'
                         }`}
                       >
-                        {copiedId === c.card_uid ? <span>¡Copiado!</span> : <span>Copiar URL</span>}
+                        {c.is_active ? 'ACTIVA' : 'INACTIVA'}
                       </button>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 align-middle">
-                    <button
-                      onClick={() => handleToggle(c.id, c.is_active ?? false)}
-                      disabled={isPending}
-                      className={`cursor-pointer disabled:cursor-not-allowed px-3 py-1.5 text-[11px] font-extrabold tracking-wider rounded border transition-colors disabled:opacity-50 ${
-                        c.is_active
-                          ? 'bg-accent/50 text-accent-foreground border-border hover:bg-accent/70'
-                          : 'bg-muted text-muted-foreground/60 border-border/30 hover:bg-muted/70'
-                      }`}
-                    >
-                      {c.is_active ? 'ACTIVA' : 'INACTIVA'}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4">
-                    {renderProfileBadge(c.profile_id)}
-                  </td>
-                  <td className="px-6 py-4 text-xs text-muted-foreground font-medium max-w-[200px] truncate" title={c.notes || ''}>
-                    {c.notes || '-'}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleDelete(c.id)}
-                      disabled={isPending}
-                      className="cursor-pointer disabled:cursor-not-allowed text-[11px] uppercase tracking-wider font-bold bg-background text-destructive px-3 py-1.5 rounded border border-destructive/30 hover:bg-destructive/10 transition"
-                    >
-                      Desvincular
-                    </button>
-                  </td>
-                </tr>
+                    </td>
+                    <td className="px-6 py-4">
+                      {renderProfileBadge(c.profile_id)}
+                    </td>
+                    <td className="px-6 py-4 text-xs text-muted-foreground font-medium max-w-[200px] truncate" title={c.notes || ''}>
+                      {c.notes || '-'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
+                        <button
+                          onClick={() => setEditingId(editingId === c.id ? null : c.id)}
+                          disabled={isPending}
+                          className="cursor-pointer disabled:cursor-not-allowed text-[11px] uppercase tracking-wider font-bold bg-background text-foreground px-3 py-1.5 rounded border border-border hover:bg-muted transition flex items-center gap-1"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          {editingId === c.id ? 'Cancelar' : 'Editar'}
+                        </button>
+                        {c.profile_id && (
+                          <button
+                            onClick={() => handleUnlink(c.id)}
+                            disabled={isPending}
+                            className="cursor-pointer disabled:cursor-not-allowed text-[11px] uppercase tracking-wider font-bold bg-background text-amber-600 px-3 py-1.5 rounded border border-amber-600/30 hover:bg-amber-600/10 transition"
+                          >
+                            Desvincular
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          disabled={isPending}
+                          className="cursor-pointer disabled:cursor-not-allowed text-[11px] uppercase tracking-wider font-bold bg-background text-destructive px-3 py-1.5 rounded border border-destructive/30 hover:bg-destructive/10 transition"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* Inline edit form */}
+                  {editingId === c.id && (
+                    <tr key={`edit-${c.id}`} className="border-b border-border/40 bg-muted/20">
+                      <td colSpan={5} className="px-6 py-5">
+                        <form
+                          key={editingId}
+                          onSubmit={(e) => handleEdit(e, c.id)}
+                          className="grid grid-cols-1 md:grid-cols-3 gap-5"
+                        >
+                          <div className="flex flex-col">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center">
+                              Código Único (UID)<span className="text-destructive ml-1.5">*</span>
+                            </label>
+                            <input
+                              required
+                              name="card_uid"
+                              defaultValue={c.card_uid}
+                              placeholder="Ej: A1B2C3D4 o A1:B2:C3:D4"
+                              className="w-full border border-border bg-background text-foreground placeholder:text-muted-foreground/50 p-2.5 rounded text-sm focus:ring-1 focus:ring-ring focus:outline-none font-mono transition-colors"
+                            />
+                          </div>
+
+                          <UserSearchAutocomplete
+                            defaultProfile={profiles.find(p => p.id === c.profile_id) ?? null}
+                          />
+
+                          <div className="flex flex-col">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                              Notas / Tipo de la tarjeta
+                            </label>
+                            <input
+                              name="notes"
+                              defaultValue={c.notes ?? ''}
+                              placeholder="Lote 001 - Negro Mate"
+                              className="w-full border border-border bg-background text-foreground placeholder:text-muted-foreground/50 p-2.5 rounded text-sm focus:ring-1 focus:ring-ring focus:outline-none transition-colors"
+                            />
+                          </div>
+
+                          <div className="md:col-span-3 flex justify-end gap-3 border-t border-border/40 pt-4">
+                            <button
+                              type="button"
+                              onClick={() => setEditingId(null)}
+                              className="cursor-pointer px-5 py-2 rounded border border-border bg-background hover:bg-muted text-sm font-medium transition"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={isPending}
+                              className="cursor-pointer disabled:cursor-wait bg-primary hover:bg-primary/80 text-primary-foreground px-8 py-2 rounded font-medium transition disabled:opacity-50 text-sm"
+                            >
+                              {isPending ? 'Guardando...' : 'Guardar cambios'}
+                            </button>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
               {cards.length === 0 && (
                 <tr>

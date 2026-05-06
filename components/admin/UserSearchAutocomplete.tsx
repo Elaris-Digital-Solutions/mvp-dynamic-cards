@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { searchAdminProfiles } from '@/lib/actions/admin'
 
-export function UserSearchAutocomplete() {
+type ProfileOption = { id: string; username: string; full_name: string | null; is_active: boolean }
+
+export function UserSearchAutocomplete({ defaultProfile }: { defaultProfile?: ProfileOption | null } = {}) {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [isSearching, setIsSearching] = useState(false)
-  const [selectedProfile, setSelectedProfile] = useState<{ id: string, username: string, full_name: string | null, is_active: boolean } | null>(null)
+  const [selectedProfile, setSelectedProfile] = useState<ProfileOption | null>(defaultProfile ?? null)
   const [showDropdown, setShowDropdown] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
