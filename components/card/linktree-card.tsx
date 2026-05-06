@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { TEMPLATES } from '@/lib/constants'
 import { montserrat } from '@/lib/fonts'
 import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
-import { Download, ExternalLink, Globe, MessageCircle, ArrowLeft } from 'lucide-react'
+import { Download, ExternalLink, Globe, Mail, MessageCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import type { UserProfile } from '@/types/ui.types'
 import { generateVCard } from '@/lib/utils/generate-vcard'
@@ -191,6 +191,17 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
             >
               {profile.bio}
             </p>
+          )}
+
+          {profile.email && (
+            <a
+              href={`mailto:${profile.email}`}
+              className="mt-2.5 inline-flex items-center gap-1.5 text-sm animate-in fade-in duration-500 delay-700 fill-mode-both hover:underline"
+              style={{ color: isLightTemplate ? '#3a475c' : '#b7c1d4' }}
+            >
+              <Mail className="w-3.5 h-3.5 shrink-0" />
+              {profile.email}
+            </a>
           )}
 
           {/* Save contact button */}
