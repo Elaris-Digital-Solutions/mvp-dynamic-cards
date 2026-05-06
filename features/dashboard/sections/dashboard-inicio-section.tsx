@@ -26,17 +26,20 @@ export function DashboardInicioSection({ profileForm, links }: Props) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="rounded-xl border border-border/60 p-4">
-          <h3 className="text-2xl font-bold">Datos personales</h3>
-          <p className="text-muted-foreground mt-1.5 text-base">Modifica tu cargo, empresa y bio profesional.</p>
+        <div className="rounded-xl border-l-2 border-l-primary/40 border border-border/30 bg-muted/30 p-4">
+          <p className="text-xs font-semibold tracking-[0.18em] uppercase text-muted-foreground/70 mb-1.5">Sección</p>
+          <h3 className="text-lg font-semibold">Datos personales</h3>
+          <p className="text-muted-foreground mt-1 text-sm">Modifica tu cargo, empresa y bio profesional.</p>
         </div>
-        <div className="rounded-xl border border-border/60 p-4">
-          <h3 className="text-2xl font-bold">Enlaces y redes</h3>
-          <p className="text-muted-foreground mt-1.5 text-base">Añade tus redes sociales, portafolio o WhatsApp.</p>
+        <div className="rounded-xl border-l-2 border-l-primary/40 border border-border/30 bg-muted/30 p-4">
+          <p className="text-xs font-semibold tracking-[0.18em] uppercase text-muted-foreground/70 mb-1.5">Sección</p>
+          <h3 className="text-lg font-semibold">Enlaces y redes</h3>
+          <p className="text-muted-foreground mt-1 text-sm">Añade tus redes sociales, portafolio o WhatsApp.</p>
         </div>
-        <div className="rounded-xl border border-border/60 p-4">
-          <h3 className="text-2xl font-bold">Plantilla</h3>
-          <p className="text-muted-foreground mt-1.5 text-base">Personaliza los colores y el diseño de tu perfil.</p>
+        <div className="rounded-xl border-l-2 border-l-primary/40 border border-border/30 bg-muted/30 p-4">
+          <p className="text-xs font-semibold tracking-[0.18em] uppercase text-muted-foreground/70 mb-1.5">Sección</p>
+          <h3 className="text-lg font-semibold">Plantilla</h3>
+          <p className="text-muted-foreground mt-1 text-sm">Personaliza los colores y el diseño de tu perfil.</p>
         </div>
       </div>
 

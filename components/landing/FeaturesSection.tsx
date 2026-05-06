@@ -66,8 +66,8 @@ export function FeaturesSection() {
             const Icon = feature.icon
             return (
               <RevealOnScroll key={feature.title} delay={i * 80}>
-                <div className="group flex flex-col gap-4 bg-white p-7 hover:bg-[#fafbfd] transition-colors duration-200 h-full">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#e5eaf2] bg-[#f8fafd] group-hover:border-[#c5d4e8] group-hover:bg-[#edf2f8] transition-colors duration-200">
+                <div className="flex flex-col gap-4 bg-white p-7 h-full">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#e5eaf2] bg-[#f8fafd]">
                     <Icon className="h-4.5 w-4.5 text-[#1a4a8c]" strokeWidth={1.5} />
                   </div>
                   <div>

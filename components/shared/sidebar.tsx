@@ -58,6 +58,7 @@ export function Sidebar({
   username,
 }: SidebarProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const router = useRouter()
   const [isNavigating, startNavigating] = useTransition()
 
@@ -142,7 +143,7 @@ export function Sidebar({
         </Button>
       </div>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={confirmOpen} onOpenChange={(open) => { if (!isLoggingOut) setConfirmOpen(open) }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Cerrar sesión?</AlertDialogTitle>
@@ -151,9 +152,18 @@ export function Sidebar({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void onLogout?.()}>
-              Cerrar sesión
+            <AlertDialogCancel disabled={isLoggingOut}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isLoggingOut}
+              onClick={async (e) => {
+                e.preventDefault()
+                setIsLoggingOut(true)
+                await onLogout?.()
+              }}
+            >
+              {isLoggingOut
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Cerrando sesión...</>
+                : 'Cerrar sesión'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

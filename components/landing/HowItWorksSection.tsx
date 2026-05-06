@@ -57,7 +57,7 @@ export function HowItWorksSection() {
             const Icon = step.icon
             return (
               <RevealOnScroll key={step.number} delay={i * 100}>
-                <div className="relative flex flex-col gap-5 rounded-2xl bg-white border border-white/80 p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 h-full">
+                <div className="relative flex flex-col gap-5 rounded-2xl bg-white border border-[#e8edf4] p-6 shadow-sm h-full">
                   {/* Step number */}
                   <div className="flex items-center justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#05070b]">
