@@ -24,6 +24,7 @@ async function syncWhatsAppButton(
 
   if (whatsapp) {
     const normalizedNumber = whatsapp.replace(/\D/g, '')
+    if (normalizedNumber.length < 6 || normalizedNumber.length > 15) return
     const whatsappUrl = `https://wa.me/${normalizedNumber}`
 
     if (existing) {

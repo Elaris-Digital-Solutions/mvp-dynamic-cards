@@ -42,7 +42,7 @@ export async function createButton(formData: FormData) {
   const { id, label, url, icon } = parsed.data
 
   // Check if ID already exists to prevent collision
-  const { data: existing } = await supabase.from('action_buttons').select('id').eq('id', id).single()
+  const { data: existing } = await supabase.from('action_buttons').select('id').eq('id', id).maybeSingle()
   if (existing) {
     return { error: 'Button already exists' }
   }
