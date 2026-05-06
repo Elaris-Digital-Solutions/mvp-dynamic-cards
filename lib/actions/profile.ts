@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { requireActiveUser } from '@/lib/auth/requireActiveUser'
 import { requireAuth } from '@/lib/auth/requireAuth'
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { redirect } from 'next/navigation'
 import { templateKeyToId } from '@/lib/utils/template-map'
 import { updateProfileSchema } from '@/lib/validation/schemas'
@@ -142,6 +143,20 @@ export async function updateProfile(
       ? deleteCloudinaryImage(current.banner_url)
       : Promise.resolve(),
   ])
+
+  // Pre-warm Cloudinary CDN cache for new images so the public profile loads instantly
+  const newAvatar = avatar_url && avatar_url !== current?.avatar_url ? avatar_url : null
+  const newBanner = banner_url && banner_url !== current?.banner_url ? banner_url : null
+  if (newAvatar || newBanner) {
+    after(async () => {
+      const warmUp = (url: string, transform: string) =>
+        fetch(url.replace('/upload/', `/upload/${transform}/`), { method: 'HEAD' }).catch(() => {})
+      await Promise.all([
+        newAvatar ? warmUp(newAvatar, 'w_200,h_200,c_fill,f_auto,q_auto') : null,
+        newBanner ? warmUp(newBanner, 'w_1200,h_400,c_fill,f_auto,q_auto') : null,
+      ])
+    })
+  }
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)
