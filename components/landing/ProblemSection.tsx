@@ -3,18 +3,18 @@ import { RevealOnScroll } from './RevealOnScroll'
 const problems = [
   {
     index: '01',
-    title: 'Tarjetas que nunca caducan',
-    description: 'Deja de gastar en impresiones. Actualiza tu cargo o empresa en segundos sin cambiar de tarjeta.',
+    title: 'Tarjetas que quedan obsoletas',
+    description: 'Cualquier cambio de cargo, empresa o teléfono convierte tu tarjeta en basura de papel.',
   },
   {
     index: '02',
     title: 'Fricción en cada intercambio',
-    description: 'Buscar apps, digitar datos a mano, perder contactos. Networking innecesariamente complicado.',
+    description: 'Digitar datos a mano y perder contactos hace que el networking sea lento y poco eficiente.',
   },
   {
     index: '03',
-    title: 'Control total sobre tu impacto',
-    description: 'Mide el éxito de tu networking. Conoce cuántas personas visitan tu perfil y cuándo lo hacen.',
+    title: 'Cero visibilidad de tu impacto',
+    description: 'Es imposible saber cuántas personas guardaron tu contacto o visitaron tu perfil tras un evento.',
   },
 ]
 
