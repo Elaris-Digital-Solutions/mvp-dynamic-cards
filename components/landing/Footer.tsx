@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { MapPin, Mail, Phone } from 'lucide-react'
 
 const navLinks = [
@@ -68,9 +69,13 @@ export function Footer() {
             {/* Brand — 2 col-spans on lg */}
             <div className="lg:col-span-2 flex flex-col gap-5">
               <div>
-                <span className="text-lg font-bold tracking-[0.25em] uppercase text-white">
-                  Veltrix
-                </span>
+                <Image
+                  src="/logo.png"
+                  alt="Veltrix"
+                  width={320}
+                  height={80}
+                  className="h-4 w-auto object-contain"
+                />
                 <p className="mt-3 text-sm text-[#8ab0d0] leading-relaxed max-w-[260px]">
                   La plataforma de networking inteligente para profesionales de alto impacto. 
                 </p>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getCurrentProfile } from '@/lib/auth/getCurrentProfile'
@@ -15,11 +16,15 @@ export async function Header() {
   return (
     <header className="border-b border-border/10 sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="h-16 px-6 flex items-center justify-between max-w-7xl mx-auto w-full">
-        <Link
-          href="/"
-          className="text-base md:text-lg font-medium tracking-[0.28em] uppercase"
-        >
-          VELTRIX
+        <Link href="/" aria-label="Veltrix — inicio">
+          <Image
+            src="/logo.png"
+            alt="Veltrix"
+            width={320}
+            height={80}
+            priority
+            className="h-4 w-auto object-contain"
+          />
         </Link>
 
         <div className="flex items-center gap-4">
