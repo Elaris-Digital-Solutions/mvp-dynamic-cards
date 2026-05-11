@@ -206,6 +206,7 @@ export async function searchAdminProfiles(query: string) {
     .from('profiles')
     .select('id, username, full_name, is_active')
     .ilike('username', `%${parsed.data.query}%`)
+    .not('username', 'like', '_tmp_%')
     .limit(10)
 
   if (error) {

@@ -27,6 +27,7 @@ export default async function AdminPage() {
     supabase
       .from('profiles')
       .select('id, full_name, username, email, is_active, role, service_expires_at')
+      .not('username', 'like', '_tmp_%')
       .order('created_at', { ascending: false })
       .limit(100),
     supabase
@@ -34,8 +35,8 @@ export default async function AdminPage() {
       .select('id, card_uid, is_active, profile_id, notes')
       .order('created_at', { ascending: false })
       .limit(100),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).not('username', 'like', '_tmp_%'),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_active', true).not('username', 'like', '_tmp_%'),
     supabase.from('nfc_cards').select('*', { count: 'exact', head: true }),
     supabase.from('nfc_cards').select('*', { count: 'exact', head: true }).not('profile_id', 'is', null),
   ])
