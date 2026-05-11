@@ -2,25 +2,28 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ButtonHTMLAttributes } from 'react'
+import { ButtonHTMLAttributes, useState } from 'react'
 
 export default function LogoutButton({ className, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
   const router = useRouter()
   const supabase = createClient()
+  const [isPending, setIsPending] = useState(false)
 
   const handleLogout = async () => {
+    setIsPending(true)
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
   }
 
   return (
-    <button 
+    <button
       onClick={handleLogout}
-      className={`text-sm font-medium hover:opacity-70 transition-opacity ${className || ''}`}
+      disabled={isPending}
+      className={`text-sm font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-70 ${className || ''}`}
       {...props}
     >
-      Cerrar sesión
+      {isPending ? 'Cerrando sesión…' : 'Cerrar sesión'}
     </button>
   )
 }
