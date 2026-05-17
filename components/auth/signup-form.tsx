@@ -9,16 +9,6 @@ import { Label } from '@/components/ui/label'
 import { checkUsernameAvailability } from '@/lib/auth/checkUsernameAvailability'
 import { getUsernameSuggestions } from '@/lib/utils/usernameSuggestions'
 
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (container: HTMLElement, options: Record<string, unknown>) => string
-      remove: (widgetId: string) => void
-      reset: (widgetId: string) => void
-    }
-  }
-}
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SignupFormProps {

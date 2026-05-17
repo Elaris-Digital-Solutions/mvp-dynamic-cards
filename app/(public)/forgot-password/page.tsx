@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { requestPasswordResetAction } from '@/lib/actions/auth'
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
 
 const pureWhiteStyle = { color: '#ffffff', opacity: 1, WebkitTextFillColor: '#ffffff' }
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
@@ -20,7 +22,7 @@ export default function ForgotPasswordPage() {
     setError('')
     setLoading(true)
 
-    const result = await requestPasswordResetAction(email.trim())
+    const result = await requestPasswordResetAction(email.trim(), turnstileToken)
     setLoading(false)
 
     if (result.error) {
@@ -97,6 +99,8 @@ export default function ForgotPasswordPage() {
                       />
                     </div>
 
+                    <TurnstileWidget onVerify={setTurnstileToken} />
+
                     {error && (
                       <p className="text-sm text-red-300" role="alert">{error}</p>
                     )}
@@ -104,7 +108,7 @@ export default function ForgotPasswordPage() {
                     <Button
                       type="submit"
                       className="w-full h-11 rounded-lg font-semibold uppercase tracking-wide shadow-[0_10px_30px_-16px_rgba(14,44,92,0.75)]"
-                      disabled={loading || !email.trim()}
+                      disabled={loading || !email.trim() || !turnstileToken}
                     >
                       {loading ? 'Enviando...' : 'Enviar enlace'}
                     </Button>

@@ -11,8 +11,8 @@ function LoginContent() {
   const successMessage = searchParams.get('message') ?? undefined
   const errorParam = searchParams.get('error') ?? undefined
 
-  const handleLogin = async (email: string, password: string) => {
-    const { role, error } = await loginAction(email, password)
+  const handleLogin = async (email: string, password: string, turnstileToken: string) => {
+    const { role, error } = await loginAction(email, password, turnstileToken)
 
     if (error === 'EMAIL_NOT_CONFIRMED') {
       router.push(`/verify-email?email=${encodeURIComponent(email)}`)

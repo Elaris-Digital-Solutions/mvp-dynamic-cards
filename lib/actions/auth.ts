@@ -20,8 +20,12 @@ async function getSiteUrl(): Promise<string> {
 
 export async function loginAction(
   email: string,
-  password: string
+  password: string,
+  turnstileToken: string
 ): Promise<{ role: string | null; error?: string }> {
+  const turnstileError = await verifyTurnstile(turnstileToken)
+  if (turnstileError) return { role: null, error: turnstileError }
+
   const ip = await getClientIp()
 
   if (await isRateLimited(`auth:${ip}`)) {
@@ -136,7 +140,10 @@ export async function resendVerificationEmailAction(email: string): Promise<{ er
   return {}
 }
 
-export async function requestPasswordResetAction(email: string): Promise<{ error?: string }> {
+export async function requestPasswordResetAction(email: string, turnstileToken: string): Promise<{ error?: string }> {
+  const turnstileError = await verifyTurnstile(turnstileToken)
+  if (turnstileError) return { error: turnstileError }
+
   const ip = await getClientIp()
 
   if (await isRateLimited(`auth:${ip}`)) {

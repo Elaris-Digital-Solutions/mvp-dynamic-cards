@@ -6,11 +6,12 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LoginFormProps {
-  onLogin?: (email: string, password: string) => Promise<void>
+  onLogin?: (email: string, password: string, turnstileToken: string) => Promise<void>
   isLoading?: boolean
   hideSignup?: boolean
   successMessage?: string
@@ -23,11 +24,12 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
   const [formError, setFormError] = useState('')
   const [internalLoading, setInternalLoading] = useState(false)
 
   const isLoading = externalLoading || internalLoading
-  const isSubmitDisabled = isLoading || !email.trim() || !password.trim()
+  const isSubmitDisabled = isLoading || !email.trim() || !password.trim() || !turnstileToken
   const pureWhiteStyle = { color: '#ffffff', opacity: 1, WebkitTextFillColor: '#ffffff' }
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,7 +39,7 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
 
     try {
       if (onLogin) {
-        await onLogin(email.trim(), password)
+        await onLogin(email.trim(), password, turnstileToken)
       } else {
         router.push('/dashboard')
       }
@@ -112,6 +114,8 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
                 className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
               />
             </div>
+
+            <TurnstileWidget onVerify={setTurnstileToken} />
 
             {formError && (
               <p className="text-sm text-red-300" role="alert">{formError}</p>
