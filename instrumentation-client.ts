@@ -5,14 +5,18 @@
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
-  dsn: "https://44359fc7cb55474a5bc5d70737e4d633@o4511260033744896.ingest.us.sentry.io/4511260035252224",
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: 0.1,
 
   enableLogs: true,
 
   sendDefaultPii: false,
+
+  allowUrls: [
+    /https:\/\/veltrixnfc\.com/,
+    /http:\/\/localhost/,
+  ],
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
