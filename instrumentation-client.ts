@@ -17,6 +17,17 @@ Sentry.init({
     /https:\/\/veltrixnfc\.com/,
     /http:\/\/localhost/,
   ],
+
+  beforeSend(event) {
+    if (event.request?.url?.includes('/admin')) return null
+    return event
+  },
+
+  tracesSampler(samplingContext) {
+    const name = samplingContext.name ?? ''
+    if (name.includes('/admin')) return 0
+    return 0.1
+  },
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
