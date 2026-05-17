@@ -108,22 +108,32 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
 
   const cloudinaryUpload = async (file: File): Promise<string> => {
     const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
-
     if (!ALLOWED.includes(file.type))
       throw new Error('Solo se permiten imágenes JPG, PNG o WebP.')
 
     const compressed = await compressImage(file)
+    const timestamp = Math.floor(Date.now() / 1000).toString()
+
+    const sigRes = await fetch('/api/cloudinary-signature', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paramsToSign: { timestamp } }),
+    })
+    if (!sigRes.ok) throw new Error('No se pudo autorizar la carga de imagen.')
+    const { signature } = await sigRes.json()
 
     const formData = new FormData()
     formData.append('file', compressed)
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!)
-    formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!)
+    formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!)
+    formData.append('timestamp', timestamp)
+    formData.append('signature', signature)
 
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
       { method: 'POST', body: formData }
     )
     const data = await res.json()
+    if (!data.secure_url) throw new Error('Error al subir la imagen.')
     return data.secure_url
   }
 

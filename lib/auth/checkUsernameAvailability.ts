@@ -21,8 +21,8 @@ export async function checkUsernameAvailability(username: string): Promise<{ ava
   const supabase = await createClient()
 
   // ilike para comparación case-insensitive robusta aunque el trigger falle
-  const { data, error } = await supabase
-    .from('profiles')
+  const { data, error } = await (supabase as any)
+    .from('public_profiles')
     .select('username')
     .ilike('username', cleanUsername)
     .single()

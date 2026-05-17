@@ -172,5 +172,6 @@ export async function updatePasswordAction(password: string): Promise<{ error?: 
   }
 
   cookieStore.delete('pw_reset_pending')
+  await supabase.auth.signOut({ scope: 'global' })
   return {}
 }

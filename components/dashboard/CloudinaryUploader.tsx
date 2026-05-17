@@ -14,6 +14,17 @@ interface Props {
   label: string
 }
 
+async function fetchSignature(callback: (signature: string) => void, paramsToSign: Record<string, string>) {
+  const res = await fetch('/api/cloudinary-signature', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paramsToSign }),
+  })
+  if (!res.ok) throw new Error('No se pudo obtener la firma de carga')
+  const { signature } = await res.json()
+  callback(signature)
+}
+
 export function CloudinaryUploader({ onSuccess, disabled, label }: Props) {
   const [loaded, setLoaded] = useState(false)
 
@@ -35,10 +46,11 @@ export function CloudinaryUploader({ onSuccess, disabled, label }: Props) {
     window.cloudinary.createUploadWidget(
       {
         cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-        uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+        apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+        uploadSignature: fetchSignature,
         sources: ['local', 'url'],
         multiple: false,
-        cropping: true
+        cropping: true,
       },
       (error: any, result: any) => {
         if (!error && result && result.event === 'success') {
@@ -49,9 +61,9 @@ export function CloudinaryUploader({ onSuccess, disabled, label }: Props) {
   }
 
   return (
-    <button 
-      type="button" 
-      onClick={openWidget} 
+    <button
+      type="button"
+      onClick={openWidget}
       disabled={disabled || !loaded}
       className="bg-gray-200 text-gray-800 text-sm py-1.5 px-3 rounded hover:bg-gray-300 disabled:opacity-50 transition"
     >
