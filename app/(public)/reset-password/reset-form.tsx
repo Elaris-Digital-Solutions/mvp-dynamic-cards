@@ -17,7 +17,10 @@ export function ResetForm() {
   const [error, setError] = useState('')
 
   const passwordsMatch = password === confirm
-  const isDisabled = loading || !password || !confirm || !passwordsMatch || password.length < 8
+  const passwordValid = password.length >= 12 &&
+    /[a-z]/.test(password) && /[A-Z]/.test(password) &&
+    /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+  const isDisabled = loading || !password || !confirm || !passwordsMatch || !passwordValid
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -53,13 +56,15 @@ export function ResetForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={8}
+          minLength={12}
           autoComplete="new-password"
           disabled={loading}
           className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
         />
-        {password && password.length < 8 && (
-          <p className="text-xs text-red-300">Mínimo 8 caracteres.</p>
+        {password && !passwordValid && (
+          <p className="text-xs text-red-300">
+            Mínimo 12 caracteres, mayúscula, minúscula y número o carácter especial.
+          </p>
         )}
       </div>
 
@@ -74,7 +79,7 @@ export function ResetForm() {
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           required
-          minLength={8}
+          minLength={12}
           autoComplete="new-password"
           disabled={loading}
           className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"

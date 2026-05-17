@@ -161,12 +161,24 @@ export async function requestPasswordResetAction(email: string, turnstileToken: 
   return {}
 }
 
+function validatePasswordStrength(password: string): string | null {
+  if (password.length < 12)          return 'La contraseña debe tener al menos 12 caracteres.'
+  if (!/[a-z]/.test(password))       return 'Debe incluir al menos una letra minúscula.'
+  if (!/[A-Z]/.test(password))       return 'Debe incluir al menos una letra mayúscula.'
+  if (!/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password))
+                                     return 'Debe incluir al menos un número o carácter especial.'
+  return null
+}
+
 export async function updatePasswordAction(password: string): Promise<{ error?: string }> {
   const cookieStore = await cookies()
 
   if (cookieStore.get('pw_reset_pending')?.value !== '1') {
     return { error: 'Sesión de restablecimiento inválida. Solicita un nuevo enlace.' }
   }
+
+  const strengthError = validatePasswordStrength(password)
+  if (strengthError) return { error: strengthError }
 
   const supabase = await createClient()
   const { error } = await supabase.auth.updateUser({ password })
