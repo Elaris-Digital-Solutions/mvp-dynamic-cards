@@ -47,6 +47,8 @@ export type UIUserProfile = {
   bannerImage?: string
   selectedTemplate?: string
   links?: UILinkItem[]
+  pdfFilename?: string
+  pdfSize?: number
 }
 
 // ─── Adapters ─────────────────────────────────────────────────────────────────
@@ -112,5 +114,7 @@ export function dbProfileToUIProfile(
     bannerImage: profile.banner_url ?? undefined,
     selectedTemplate: templateIdToKey(profile.template_id),
     links: buttons.map(dbButtonToLinkItem),
+    pdfFilename: profile.pdf_filename ?? undefined,
+    pdfSize: profile.pdf_size ?? undefined,
   }
 }

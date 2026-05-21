@@ -11,7 +11,7 @@ import { DashboardPerfilSection } from '@/features/dashboard/sections/dashboard-
 import { DashboardPlantillaSection } from '@/features/dashboard/sections/dashboard-plantilla-section'
 import { TEMPLATES } from '@/lib/constants'
 import { useLogout } from '@/lib/auth/useLogout'
-import { updateProfile, updateTemplate, deleteAccount } from '@/lib/actions/profile'
+import { updateProfile, updateTemplate, deleteAccount, uploadProfilePdf, deleteProfilePdf } from '@/lib/actions/profile'
 import { UsernameSetupModal } from '@/components/dashboard/UsernameSetupModal'
 import { compressImage } from '@/lib/utils/compress-image'
 import { createButton, updateButton, deleteButton, saveButtonOrder } from '@/lib/actions/buttons'
@@ -33,7 +33,8 @@ function normalizeIcon(icon: string): LinkIcon {
     icon === 'instagram' ||
     icon === 'linkedin' ||
     icon === 'whatsapp' ||
-    icon === 'website'
+    icon === 'website' ||
+    icon === 'brochure'
   ) {
     return icon
   }
@@ -96,6 +97,18 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
   const [pendingProfileImage, setPendingProfileImage] = useState<File | null>(null)
   const [pendingBannerImage, setPendingBannerImage] = useState<File | null>(null)
   const previewUrls = useRef<{ profileImage?: string; bannerImage?: string }>({})
+
+  // ── PDF state ──────────────────────────────────────────────────────────────
+  const [pdfMeta, setPdfMeta] = useState<{ filename: string; size: number; url: string } | null>(() => {
+    const brochureLink = (initialProfile.links ?? []).find(l => l.icon === 'brochure')
+    if (!brochureLink || !initialProfile.pdfFilename) return null
+    return {
+      filename: initialProfile.pdfFilename,
+      size: initialProfile.pdfSize ?? 0,
+      url: brochureLink.url,
+    }
+  })
+  const [isPdfUploading, setIsPdfUploading] = useState(false)
 
   useEffect(() => {
     return () => {
@@ -330,6 +343,41 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
     })
   }
 
+  const handlePdfUpload = async (file: File) => {
+    setIsPdfUploading(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await uploadProfilePdf(formData)
+    setIsPdfUploading(false)
+    if ('error' in res) {
+      toast.error(res.error)
+      return
+    }
+    setPdfMeta({ filename: res.filename, size: res.size, url: res.url })
+    setLinks(prev => {
+      const withoutBrochure = prev.filter((l: EditableLink) => l.icon !== 'brochure')
+      return [...withoutBrochure, {
+        id: res.buttonId,
+        title: 'Ver brochure',
+        url: res.url,
+        icon: 'brochure' as LinkIcon,
+        isManaged: true,
+      }]
+    })
+    toast.success('Brochure publicado correctamente.')
+  }
+
+  const handlePdfDelete = async () => {
+    const res = await deleteProfilePdf()
+    if ('error' in res) {
+      toast.error(res.error)
+      return
+    }
+    setPdfMeta(null)
+    setLinks(prev => prev.filter((l: EditableLink) => l.icon !== 'brochure'))
+    toast.success('Brochure eliminado.')
+  }
+
   const activeTemplate =
     TEMPLATES[activeTemplateId as keyof typeof TEMPLATES] ?? TEMPLATES['minimal-black']
 
@@ -389,6 +437,11 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
               onAddLink={addLink}
               onSaveLinks={saveLinks}
               onReorderLinks={handleReorderLinks}
+              pdfMeta={pdfMeta}
+              isPdfUploading={isPdfUploading}
+              onPdfUpload={handlePdfUpload}
+              onPdfDelete={handlePdfDelete}
+              username={username}
             />
           )}
 

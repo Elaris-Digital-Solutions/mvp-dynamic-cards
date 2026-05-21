@@ -186,6 +186,8 @@ export type Database = {
           is_active: boolean
           job_title: string | null
           last_name: string | null
+          pdf_filename: string | null
+          pdf_size: number | null
           phone: string | null
           role: string | null
           service_expires_at: string | null
@@ -209,6 +211,8 @@ export type Database = {
           is_active?: boolean
           job_title?: string | null
           last_name?: string | null
+          pdf_filename?: string | null
+          pdf_size?: number | null
           phone?: string | null
           role?: string | null
           service_expires_at?: string | null
@@ -232,6 +236,8 @@ export type Database = {
           is_active?: boolean
           job_title?: string | null
           last_name?: string | null
+          pdf_filename?: string | null
+          pdf_size?: number | null
           phone?: string | null
           role?: string | null
           service_expires_at?: string | null

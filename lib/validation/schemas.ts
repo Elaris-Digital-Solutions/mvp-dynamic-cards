@@ -88,3 +88,11 @@ export const processNFCCardSchema = z.object({
 export const searchProfilesSchema = z.object({
   query: z.string().trim().min(2, 'Query must be at least 2 characters').max(100),
 })
+
+// ─── PDF schemas ──────────────────────────────────────────────────────────────
+
+export const pdfUploadSchema = z.object({
+  file: z.instanceof(File)
+    .refine(f => f.type === 'application/pdf', 'Solo se aceptan archivos PDF.')
+    .refine(f => f.size <= 10 * 1024 * 1024, 'El archivo no puede superar los 10 MB.'),
+})

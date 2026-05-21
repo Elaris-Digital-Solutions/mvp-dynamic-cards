@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { TEMPLATES } from '@/lib/constants'
 import { montserrat } from '@/lib/fonts'
 import { IconBrandInstagram, IconBrandLinkedin, IconBrandWhatsapp } from '@tabler/icons-react'
-import { Download, ExternalLink, Globe, Mail, ArrowLeft } from 'lucide-react'
+import { Download, ExternalLink, Globe, Mail, ArrowLeft, FileText } from 'lucide-react'
 import Link from 'next/link'
 import type { UserProfile } from '@/types/ui.types'
 import { generateVCard } from '@/lib/utils/generate-vcard'
@@ -21,7 +21,7 @@ function cloudinaryTransform(url: string | undefined, transform: string): string
 interface LinktreeCardProps {
   profile: Pick<
     UserProfile,
-    'id' | 'name' | 'firstName' | 'lastName' | 'title' | 'company' | 'bio' | 'email' | 'phone' | 'whatsapp' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
+    'id' | 'username' | 'name' | 'firstName' | 'lastName' | 'title' | 'company' | 'bio' | 'email' | 'phone' | 'whatsapp' | 'profileImage' | 'bannerImage' | 'selectedTemplate' | 'links'
   >
   showBackButton?: boolean
 }
@@ -49,17 +49,24 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
     instagram: <IconBrandInstagram className="w-5 h-5" />,
     website: <Globe className="w-5 h-5" />,
     link: <Globe className="w-5 h-5" />,
+    brochure: <FileText className="w-5 h-5" />,
   }
 
   const friendlyLabels: Record<string, string> = {
     linkedin: 'Conectemos en LinkedIn',
     instagram: 'Sígueme en Instagram',
     whatsapp: 'Hablemos por WhatsApp',
+    brochure: 'Ver brochure',
   }
 
   const isLightTemplate = (template.textStyle as string) === 'dark'
   const visibleLinks = profile.links?.slice(0, 6) ?? []
   const [avatarError, setAvatarError] = useState(false)
+
+  const getLinkHref = (link: { icon: string; url: string }) =>
+    link.icon === 'brochure' && profile.username
+      ? `/api/pdf/${profile.username}`
+      : link.url
 
   useEffect(() => {
     if (!profile.id) return
@@ -241,7 +248,7 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
             {visibleLinks.map((link, index) => (
               <a
                 key={link.id}
-                href={link.url}
+                href={getLinkHref(link)}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => handleLinkClick(link)}

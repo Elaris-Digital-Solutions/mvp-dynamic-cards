@@ -8,7 +8,7 @@
 
 export type TemplateKey = 'minimal-black' // extend as templates are added
 
-export type LinkIcon = 'instagram' | 'linkedin' | 'whatsapp' | 'website' | 'link'
+export type LinkIcon = 'instagram' | 'linkedin' | 'whatsapp' | 'website' | 'link' | 'brochure'
 
 export type LinkItem = {
   id: string

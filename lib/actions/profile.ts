@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { after } from 'next/server'
 import { redirect } from 'next/navigation'
 import { templateKeyToId } from '@/lib/utils/template-map'
-import { updateProfileSchema } from '@/lib/validation/schemas'
+import { updateProfileSchema, pdfUploadSchema } from '@/lib/validation/schemas'
 import { deleteCloudinaryImage } from '@/lib/utils/cloudinary'
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -237,6 +237,120 @@ export async function updateUsername(
   revalidatePath('/dashboard')
   if (oldUsername && !oldUsername.startsWith('_tmp_')) revalidatePath(`/${oldUsername}`)
   revalidatePath(`/${cleaned}`)
+  return { success: true }
+}
+
+export async function uploadProfilePdf(
+  formData: FormData
+): Promise<{ success: true; filename: string; size: number; url: string; buttonId: string } | { error: string }> {
+  const { user, profile } = await requireActiveUser()
+
+  const rawFile = formData.get('file')
+  if (!(rawFile instanceof File)) return { error: 'No se recibió ningún archivo.' }
+
+  const parsed = pdfUploadSchema.safeParse({ file: rawFile })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
+  const { file } = parsed.data
+  const serviceClient = createServiceClient()
+
+  // Verificar si ya existe botón brochure managed
+  const { data: existing } = await (serviceClient.from('action_buttons') as any)
+    .select('id')
+    .match({ profile_id: user.id, icon: 'brochure', is_managed: true })
+    .maybeSingle()
+
+  // Si no existe, verificar que haya slot disponible
+  if (!existing) {
+    const { count } = await (serviceClient.from('action_buttons') as any)
+      .select('*', { count: 'exact', head: true })
+      .eq('profile_id', user.id)
+
+    if (count !== null && count >= 6) {
+      return { error: 'Has alcanzado el límite de 6 botones. Elimina uno para añadir tu brochure.' }
+    }
+  }
+
+  // Subir el archivo a Supabase Storage
+  const arrayBuffer = await file.arrayBuffer()
+  const fileBuffer = Buffer.from(arrayBuffer)
+  const storagePath = `${user.id}/brochure.pdf`
+
+  const { error: uploadError } = await serviceClient.storage
+    .from('profile-pdfs')
+    .upload(storagePath, fileBuffer, {
+      contentType: 'application/pdf',
+      upsert: true,
+    })
+
+  if (uploadError) return { error: 'Error al subir el archivo. Inténtalo de nuevo.' }
+
+  // Obtener URL pública
+  const { data: { publicUrl } } = serviceClient.storage
+    .from('profile-pdfs')
+    .getPublicUrl(storagePath)
+
+  // Upsert del botón managed
+  let buttonId: string
+  if (existing) {
+    await (serviceClient.from('action_buttons') as any)
+      .update({ url: publicUrl })
+      .match({ id: existing.id, profile_id: user.id })
+    buttonId = existing.id
+  } else {
+    const { data: maxBtn } = await (serviceClient.from('action_buttons') as any)
+      .select('sort_order')
+      .eq('profile_id', user.id)
+      .order('sort_order', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    buttonId = crypto.randomUUID()
+    await (serviceClient.from('action_buttons') as any).insert({
+      id: buttonId,
+      profile_id: user.id,
+      label: 'Ver brochure',
+      url: publicUrl,
+      icon: 'brochure',
+      is_managed: true,
+      sort_order: maxBtn ? maxBtn.sort_order + 1 : 0,
+      is_active: true,
+    })
+  }
+
+  // Guardar metadatos en profiles
+  await (serviceClient.from('profiles') as any)
+    .update({ pdf_filename: file.name, pdf_size: file.size, updated_at: new Date().toISOString() })
+    .eq('id', user.id)
+
+  revalidatePath('/dashboard')
+  revalidatePath(`/${profile.username}`)
+
+  return { success: true, filename: file.name, size: file.size, url: publicUrl, buttonId }
+}
+
+export async function deleteProfilePdf(): Promise<{ success: true } | { error: string }> {
+  const { user, profile } = await requireActiveUser()
+  const serviceClient = createServiceClient()
+
+  // Eliminar botón managed
+  await (serviceClient.from('action_buttons') as any)
+    .delete()
+    .match({ profile_id: user.id, icon: 'brochure', is_managed: true })
+
+  // Eliminar archivo de Storage
+  await serviceClient.storage
+    .from('profile-pdfs')
+    .remove([`${user.id}/brochure.pdf`])
+
+  // Limpiar metadatos del perfil
+  await (serviceClient.from('profiles') as any)
+    .update({ pdf_filename: null, pdf_size: null, updated_at: new Date().toISOString() })
+    .eq('id', user.id)
+
+  revalidatePath('/dashboard')
+  revalidatePath(`/${profile.username}`)
+
   return { success: true }
 }
 
