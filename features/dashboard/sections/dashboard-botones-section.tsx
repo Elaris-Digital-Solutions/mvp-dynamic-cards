@@ -30,6 +30,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { EditableLink, LinkIcon, SaveStatus } from '@/types/ui.types'
+import { PdfUploader } from '@/components/dashboard/PdfUploader'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +42,11 @@ type DashboardBotonesSectionProps = {
   onAddLink: (data: { icon: LinkIcon; title: string; url: string }) => void
   onSaveLinks: () => Promise<void>
   onReorderLinks: (orderedIds: string[]) => void
+  pdfMeta: { filename: string; size: number; url: string } | null
+  isPdfUploading: boolean
+  onPdfUpload: (file: File) => Promise<void>
+  onPdfDelete: () => Promise<void>
+  username: string
 }
 
 // ─── Link type config ─────────────────────────────────────────────────────────
@@ -332,8 +338,15 @@ export function DashboardBotonesSection({
   onAddLink,
   onSaveLinks,
   onReorderLinks,
+  pdfMeta,
+  isPdfUploading,
+  onPdfUpload,
+  onPdfDelete,
+  username,
 }: DashboardBotonesSectionProps) {
   const [modalOpen, setModalOpen] = useState(false)
+  const sortableLinks = links.filter(l => l.icon !== 'brochure')
+  const isAtButtonLimit = links.length >= 6 && !pdfMeta
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -345,9 +358,9 @@ export function DashboardBotonesSection({
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     if (over && active.id !== over.id) {
-      const oldIndex = links.findIndex(l => l.id === active.id)
-      const newIndex = links.findIndex(l => l.id === over.id)
-      const reordered = arrayMove(links, oldIndex, newIndex)
+      const oldIndex = sortableLinks.findIndex(l => l.id === active.id)
+      const newIndex = sortableLinks.findIndex(l => l.id === over.id)
+      const reordered = arrayMove(sortableLinks, oldIndex, newIndex)
       void onReorderLinks(reordered.map(l => l.id))
     }
   }
@@ -367,14 +380,14 @@ export function DashboardBotonesSection({
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={links.map(l => l.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={sortableLinks.map(l => l.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
-            {links.length === 0 ? (
+            {sortableLinks.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">
                 Aún no tienes enlaces configurados. Añade tu primer botón para que otros puedan contactarte.
               </p>
             ) : (
-              links.map((link) => (
+              sortableLinks.map((link) => (
                 <SortableButtonRow
                   key={link.id}
                   link={link}
@@ -387,6 +400,15 @@ export function DashboardBotonesSection({
           </div>
         </SortableContext>
       </DndContext>
+
+      <PdfUploader
+        pdfMeta={pdfMeta}
+        isUploading={isPdfUploading}
+        isAtLimit={isAtButtonLimit}
+        onUpload={onPdfUpload}
+        onDelete={onPdfDelete}
+        username={username}
+      />
 
       {linksStatus.state === 'error' && (
         <p className="text-sm font-medium text-red-400">
