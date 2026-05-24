@@ -44,7 +44,7 @@ export async function createButton(formData: FormData) {
   // Check if ID already exists to prevent collision
   const { data: existing } = await supabase.from('action_buttons').select('id').eq('id', id).maybeSingle()
   if (existing) {
-    return { error: 'Button already exists' }
+    return { error: 'El botón ya existe.' }
   }
 
   // Quota
