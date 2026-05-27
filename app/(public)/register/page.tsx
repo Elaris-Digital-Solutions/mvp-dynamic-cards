@@ -34,7 +34,9 @@ export default function RegisterPage() {
       throw new Error(error.message)
     }
 
-    router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+    // Email verification disabled — re-enable when Supabase "Enable email confirmations" is turned back on
+    // router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+    router.push('/dashboard')
   }
 
   return (
