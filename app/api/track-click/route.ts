@@ -35,7 +35,8 @@ export async function POST(req: Request) {
     // Devolver 204 inmediatamente y procesar el insert después del response
     after(async () => {
       const supabase = await createClient()
-      const { error } = await supabase.from('click_events' as any).insert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from('click_events').insert({
         profile_id,
         button_id: button_id || null,
         event_type,
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
         platform,
         url,
         button_label: label,
-      } as any)
+      })
 
       if (error) console.error('track-click insert error:', error)
     })

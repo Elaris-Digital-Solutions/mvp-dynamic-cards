@@ -23,11 +23,12 @@ const getProfileData = cache(async (username: string) => {
 
   // BLOQUEANTE 1: consultar la vista public_profiles en lugar de la tabla profiles
   // La vista excluye role/service_expires_at/is_active y filtra cuentas inactivas/vencidas
-  const { data: profile } = await supabase
-    .from('public_profiles' as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profile } = await (supabase as any)
+    .from('public_profiles')
     .select('id, username, full_name, first_name, last_name, email, job_title, company, bio, phone, whatsapp, avatar_url, banner_url, template_id')
     .eq('username', username)
-    .single() as any
+    .single()
 
   if (!profile) return null
 

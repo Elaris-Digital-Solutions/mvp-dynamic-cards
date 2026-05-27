@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ComponentType } from 'react'
-import { Save, Globe, ExternalLink, MessageCircle, GripVertical, Lock, Loader2 } from 'lucide-react'
+import { Save, Globe, MessageCircle, GripVertical, Lock, Loader2 } from 'lucide-react'
 import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
 import {
   DndContext,

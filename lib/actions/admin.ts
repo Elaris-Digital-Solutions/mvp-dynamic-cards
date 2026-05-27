@@ -196,7 +196,7 @@ export async function deleteNFCCard(id: string) {
 }
 
 export async function searchAdminProfiles(query: string) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = createServiceClient()
 
   const parsed = searchProfilesSchema.safeParse({ query })

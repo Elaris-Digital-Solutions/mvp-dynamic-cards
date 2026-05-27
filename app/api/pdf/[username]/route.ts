@@ -8,6 +8,7 @@ export async function GET(
   const { username } = await params
   const supabase = createPublicClient()
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: profile } = await (supabase as any)
     .from('public_profiles')
     .select('id')
@@ -16,6 +17,7 @@ export async function GET(
 
   if (!profile) return new Response('Not found', { status: 404 })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: button } = await (supabase as any)
     .from('action_buttons')
     .select('url')

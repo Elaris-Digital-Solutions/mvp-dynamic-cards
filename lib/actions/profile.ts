@@ -104,7 +104,6 @@ export async function updateProfile(
 
   // Run SELECT (for cleanup) and UPDATE in parallel — cleanup only needs current URLs,
   // not the result of the update, so both can start at the same time.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [{ data: current }, { error }] = await Promise.all([
     (supabase as any)
       .from('profiles')

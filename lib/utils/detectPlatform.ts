@@ -23,8 +23,7 @@ export function detectPlatform(url: string | null | undefined): string {
 
     // Fallback for custom links
     return 'custom';
-  } catch (err) {
-    // URL parsing failed
+  } catch {
     return 'unknown';
   }
 }

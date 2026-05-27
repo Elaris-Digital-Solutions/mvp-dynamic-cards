@@ -112,9 +112,10 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
   const [isPdfUploading, setIsPdfUploading] = useState(false)
 
   useEffect(() => {
+    const urls = previewUrls.current
     return () => {
-      if (previewUrls.current.profileImage) URL.revokeObjectURL(previewUrls.current.profileImage)
-      if (previewUrls.current.bannerImage) URL.revokeObjectURL(previewUrls.current.bannerImage)
+      if (urls.profileImage) URL.revokeObjectURL(urls.profileImage)
+      if (urls.bannerImage) URL.revokeObjectURL(urls.bannerImage)
     }
   }, [])
 

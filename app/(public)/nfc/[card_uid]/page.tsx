@@ -12,6 +12,7 @@ export default async function NFCForwarderPage({ params }: Props) {
   const card_uid = decodeURIComponent(rawUid).replace(/[:\-\s]/g, '').toUpperCase()
   const supabase = createPublicClient()
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: username } = await (supabase as any).rpc('resolve_nfc', { p_uid: card_uid })
 
   if (!username) notFound()

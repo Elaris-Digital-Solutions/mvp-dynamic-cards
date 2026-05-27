@@ -32,6 +32,18 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
   const selectedTemplate = profile.selectedTemplate || 'minimal-black'
   const template = TEMPLATES[selectedTemplate as keyof typeof TEMPLATES]
 
+  const [avatarError, setAvatarError] = useState(false)
+
+  useEffect(() => {
+    if (!profile.id) return
+    fetch('/api/track-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile_id: profile.id, event_type: 'page_view' }),
+      keepalive: true,
+    }).catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!template) {
     return (
       <div className={`${montserrat.className} min-h-screen flex items-center justify-center px-6 py-10 bg-background`}>
@@ -61,22 +73,11 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
 
   const isLightTemplate = (template.textStyle as string) === 'dark'
   const visibleLinks = profile.links?.slice(0, 6) ?? []
-  const [avatarError, setAvatarError] = useState(false)
 
   const getLinkHref = (link: { icon: string; url: string }) =>
     link.icon === 'brochure' && profile.username
       ? `/api/pdf/${profile.username}`
       : link.url
-
-  useEffect(() => {
-    if (!profile.id) return
-    fetch('/api/track-click', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profile_id: profile.id, event_type: 'page_view' }),
-      keepalive: true,
-    }).catch(() => {})
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLinkClick = (link: { id: string; title: string; url: string }) => {
     if (!profile.id) return;
@@ -95,7 +96,7 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
         body: payload,
         keepalive: true
       }).catch(err => console.error("Tracking fetch failed", err))
-    } catch (err) {}
+    } catch {}
   }
 
   const handleVcfDownload = () => {

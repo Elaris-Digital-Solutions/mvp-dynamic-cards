@@ -7,7 +7,7 @@ type ProfileOption = { id: string; username: string; full_name: string | null; i
 
 export function UserSearchAutocomplete({ defaultProfile }: { defaultProfile?: ProfileOption | null } = {}) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<ProfileOption[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [selectedProfile, setSelectedProfile] = useState<ProfileOption | null>(defaultProfile ?? null)
   const [showDropdown, setShowDropdown] = useState(false)

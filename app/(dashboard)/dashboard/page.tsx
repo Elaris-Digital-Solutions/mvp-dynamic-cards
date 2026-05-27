@@ -13,6 +13,7 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const [profile, { data: buttons }] = await Promise.all([
     getCurrentProfile(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from('action_buttons')
       .select('id, label, url, icon, sort_order, is_managed')
