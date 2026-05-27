@@ -55,7 +55,7 @@ export function DashboardCuentaSection({ username, onDeleteAccount }: Props) {
         {!showConfirm ? (
           <Button
             variant="outline"
-            className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive"
+            className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive hover:text-destructive"
             onClick={() => setShowConfirm(true)}
           >
             Eliminar mi cuenta
