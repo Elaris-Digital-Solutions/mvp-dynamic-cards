@@ -165,9 +165,56 @@ function validatePasswordStrength(password: string): string | null {
   if (password.length < 12)          return 'La contraseña debe tener al menos 12 caracteres.'
   if (!/[a-z]/.test(password))       return 'Debe incluir al menos una letra minúscula.'
   if (!/[A-Z]/.test(password))       return 'Debe incluir al menos una letra mayúscula.'
-  if (!/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password))
-                                     return 'Debe incluir al menos un número o carácter especial.'
+  if (!/[0-9]/.test(password))        return 'Debe incluir al menos un número.'
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password))
+                                     return 'Debe incluir al menos un carácter especial.'
   return null
+}
+
+export async function changePasswordAction(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string
+): Promise<{ error?: string }> {
+  const ip = await getClientIp()
+
+  if (await isRateLimited(`auth:${ip}`)) {
+    return { error: 'Demasiados intentos. Espera un minuto antes de reintentar.' }
+  }
+
+  if (newPassword !== confirmPassword) {
+    return { error: 'Las contraseñas no coinciden.' }
+  }
+
+  const strengthError = validatePasswordStrength(newPassword)
+  if (strengthError) return { error: strengthError }
+
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) return { error: 'No se pudo identificar al usuario.' }
+
+  // Verificar contraseña actual — si falla, las credenciales son incorrectas
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  })
+
+  if (signInError) {
+    return { error: 'La contraseña actual es incorrecta.' }
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword })
+
+  if (error) {
+    if (error.message.toLowerCase().includes('different from the old password') ||
+        error.message.toLowerCase().includes('same password')) {
+      return { error: 'La nueva contraseña no puede ser igual a la actual.' }
+    }
+    return { error: 'No se pudo actualizar la contraseña. Intenta de nuevo.' }
+  }
+
+  return {}
 }
 
 export async function updatePasswordAction(password: string): Promise<{ error?: string }> {

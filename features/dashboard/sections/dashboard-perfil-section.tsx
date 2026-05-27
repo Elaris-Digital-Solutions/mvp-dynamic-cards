@@ -157,7 +157,7 @@ export function DashboardPerfilSection({
             <Input id="company" value={profileForm.company} onChange={(e) => setProfileForm((prev) => ({ ...prev, company: e.target.value }))} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email Corporativo</Label>
             <Input id="email" value={profileForm.email} onChange={(e) => setProfileForm((prev) => ({ ...prev, email: e.target.value }))} />
           </div>
           <div className="space-y-2">

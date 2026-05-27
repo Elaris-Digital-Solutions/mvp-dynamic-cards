@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { checkUsernameAvailability } from '@/lib/auth/checkUsernameAvailability'
 import { getUsernameSuggestions } from '@/lib/utils/usernameSuggestions'
+import { PasswordRequirements } from '@/components/ui/password-requirements'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -312,6 +313,7 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
                 disabled={isLoading}
                 className="h-11 rounded-lg border-border/60 bg-background/55 backdrop-blur-sm px-4 !text-white placeholder:!text-white/40 caret-white"
               />
+              <PasswordRequirements password={password} dark />
             </div>
 
             {/* Turnstile CAPTCHA */}

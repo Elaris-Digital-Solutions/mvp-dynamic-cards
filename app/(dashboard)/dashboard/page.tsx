@@ -29,7 +29,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex-1 w-full relative">
-      <DashboardClient initialProfile={userProfile} isAdmin={profile.role === 'admin'} />
+      <DashboardClient initialProfile={userProfile} isAdmin={profile.role === 'admin'} authEmail={user.email ?? ''} />
     </div>
   )
 }

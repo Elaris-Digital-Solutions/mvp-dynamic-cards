@@ -44,11 +44,12 @@ function normalizeIcon(icon: string): LinkIcon {
 type Props = {
   initialProfile: UIUserProfile
   isAdmin?: boolean
+  authEmail?: string
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function DashboardClient({ initialProfile, isAdmin }: Props) {
+export default function DashboardClient({ initialProfile, isAdmin, authEmail }: Props) {
   const { handleLogout } = useLogout()
 
   // ── Username setup (collision recovery) ───────────────────────────────────
@@ -396,7 +397,7 @@ export default function DashboardClient({ initialProfile, isAdmin }: Props) {
       <Sidebar
         activeSection={activeSection}
         onSectionChange={(s: string) => setActiveSection(s as DashboardSection)}
-        userEmail={initialProfile.email}
+        userEmail={authEmail}
         onLogout={handleLogout}
         isAdmin={isAdmin}
         username={username}
