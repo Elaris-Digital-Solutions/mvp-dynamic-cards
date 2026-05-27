@@ -1,6 +1,8 @@
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { createServiceClient } from '@/lib/supabase/server'
 import { AdminPanel } from '@/components/admin/AdminPanel'
+import { InfraAlert } from '@/components/admin/InfraAlert'
+import { getInfraLimits } from '@/lib/utils/infra-limits'
 import { Database } from '@/types/database'
 
 type AdminProfile = Pick<
@@ -15,6 +17,8 @@ type AdminNFCCard = Pick<
 export default async function AdminPage() {
   const { user, profile } = await requireAdmin()
   const supabase = createServiceClient()
+
+  const infraLimits = await getInfraLimits()
 
   const [
     profilesResult,
@@ -43,6 +47,7 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-2">
+      <InfraAlert supabase={infraLimits.supabase} cloudinary={infraLimits.cloudinary} />
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Centro de Gestión</h1>
         <p className="text-sm text-muted-foreground mt-1">
