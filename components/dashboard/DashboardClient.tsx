@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { toast } from 'sonner'
 import { Home } from 'lucide-react'
 import { Sidebar } from '@/components/shared/sidebar'
@@ -187,8 +188,12 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
       setIsUploadingProfileImage(true)
       try {
         avatarUrl = await cloudinaryUpload(pendingProfileImage)
-      } catch {
-        setProfileStatus({ state: 'error', message: 'No se pudo subir la foto de perfil.' })
+      } catch (err) {
+        Sentry.captureException(err, { tags: { upload: 'profileImage' } })
+        const msg = err instanceof Error && err.message.includes('autorizar')
+          ? 'Tu sesión expiró. Recargá la página e intentá de nuevo.'
+          : 'No se pudo subir la foto de perfil.'
+        setProfileStatus({ state: 'error', message: msg })
         setIsUploadingProfileImage(false)
         return
       }
@@ -199,8 +204,12 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
       setIsUploadingBannerImage(true)
       try {
         bannerUrl = await cloudinaryUpload(pendingBannerImage)
-      } catch {
-        setProfileStatus({ state: 'error', message: 'No se pudo subir la foto de portada.' })
+      } catch (err) {
+        Sentry.captureException(err, { tags: { upload: 'bannerImage' } })
+        const msg = err instanceof Error && err.message.includes('autorizar')
+          ? 'Tu sesión expiró. Recargá la página e intentá de nuevo.'
+          : 'No se pudo subir la foto de portada.'
+        setProfileStatus({ state: 'error', message: msg })
         setIsUploadingBannerImage(false)
         return
       }
@@ -387,6 +396,15 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen md:h-screen animate-in fade-in duration-700 ease-out">
+      {/* TEMP: Sentry test button — remove after verifying */}
+      {isAdmin && (
+        <button
+          onClick={() => Sentry.captureException(new Error('Sentry test — dashboard manual trigger'))}
+          className="fixed bottom-4 right-4 z-50 bg-red-600 text-white text-xs px-3 py-1.5 rounded-full opacity-70 hover:opacity-100"
+        >
+          Test Sentry
+        </button>
+      )}
       {needsUsernameSetup && (
         <UsernameSetupModal
           onSuccess={(newUsername) => {
