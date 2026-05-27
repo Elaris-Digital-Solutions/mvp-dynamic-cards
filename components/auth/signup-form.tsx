@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import * as Sentry from '@sentry/nextjs'
 import { checkUsernameAvailability } from '@/lib/auth/checkUsernameAvailability'
 import { getUsernameSuggestions } from '@/lib/utils/usernameSuggestions'
 import { PasswordRequirements } from '@/components/ui/password-requirements'
@@ -135,7 +136,8 @@ export function SignupForm({ onSignup, isLoading: externalLoading = false }: Sig
           setSuggestions([])
           setIsUsernameAvailable(true)
         }
-      } catch {
+      } catch (err) {
+        Sentry.captureException(err, { tags: { operation: 'username_check' } })
         setIsUsernameAvailable(false)
       } finally {
         setIsValidatingUsername(false)

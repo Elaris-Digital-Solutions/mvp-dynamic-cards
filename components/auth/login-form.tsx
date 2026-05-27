@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -45,6 +46,7 @@ export function LoginForm({ onLogin, isLoading: externalLoading = false, hideSig
       }
       // On success: stay in loading state until the component unmounts during navigation
     } catch (error) {
+      Sentry.captureException(error, { tags: { operation: 'auth_login' } })
       setFormError(error instanceof Error ? error.message : 'No se pudo iniciar sesión.')
       setInternalLoading(false)
     }
