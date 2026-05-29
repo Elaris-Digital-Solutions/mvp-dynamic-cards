@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" data-scroll-behavior="smooth">
       <body suppressHydrationWarning className={`${montserrat.className} antialiased bg-background text-foreground`}>
         {children}
         <Toaster position="bottom-right" richColors />

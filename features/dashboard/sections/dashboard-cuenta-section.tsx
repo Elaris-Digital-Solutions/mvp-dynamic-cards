@@ -1,13 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { TriangleAlert, Eye, EyeOff, CheckCircle, ChevronDown } from 'lucide-react'
+import { TriangleAlert, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordRequirements } from '@/components/ui/password-requirements'
 import { changePasswordAction } from '@/lib/actions/auth'
-import { cn } from '@/lib/utils'
 
 interface Props {
   username: string
@@ -104,34 +103,22 @@ export function DashboardCuentaSection({ username, onDeleteAccount }: Props) {
   )
 }
 
-// ─── Collapsible password section ─────────────────────────────────────────────
+// ─── Password section ─────────────────────────────────────────────────────────
 
 function ChangePasswordSection() {
-  const [open, setOpen] = useState(false)
-
   return (
     <div className="rounded-xl border border-border/60 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-muted/40 transition-colors"
-      >
+      <div className="px-4 py-4">
         <div className="space-y-0.5">
           <p className="font-medium">Cambiar contraseña</p>
           <p className="text-sm text-muted-foreground">
             Necesitás ingresar tu contraseña actual para poder cambiarla.
           </p>
         </div>
-        <ChevronDown
-          className={cn('w-4 h-4 text-muted-foreground shrink-0 ml-4 transition-transform duration-200', open && 'rotate-180')}
-        />
-      </button>
-
-      {open && (
-        <div className="px-4 pb-5 pt-1 border-t border-border/60">
-          <ChangePasswordForm />
-        </div>
-      )}
+      </div>
+      <div className="px-4 pb-5 pt-1 border-t border-border/60">
+        <ChangePasswordForm />
+      </div>
     </div>
   )
 }

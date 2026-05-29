@@ -108,6 +108,7 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
       phone: profile.phone,
       whatsapp: profile.whatsapp,
       email: profile.email,
+      profileUrl: `${window.location.origin}/${profile.username}`,
     })
 
     const blob = new Blob([vcf], { type: 'text/vcard;charset=utf-8' })
@@ -124,7 +125,7 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
       fetch('/api/track-click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile_id: profile.id, event_type: 'vcf_download', label: 'Sincronizar contacto' }),
+        body: JSON.stringify({ profile_id: profile.id, event_type: 'vcf_download', label: 'Guardar contacto' }),
         keepalive: true
       }).catch(() => {})
     }
@@ -228,7 +229,7 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
             }}
           >
             <Download className="w-4 h-4 mr-2" />
-            Sincronizar contacto
+            Guardar contacto
           </Button>
 
           {/* Links */}

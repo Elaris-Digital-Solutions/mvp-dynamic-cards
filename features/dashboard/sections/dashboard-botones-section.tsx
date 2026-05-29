@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import type { ComponentType } from 'react'
-import { Save, Globe, MessageCircle, GripVertical, Lock, Loader2, FileText, Upload, X } from 'lucide-react'
+import { Save, Globe, MessageCircle, GripVertical, Lock, Loader2, FileText, Upload, X, Pencil, Check } from 'lucide-react'
 import { IconBrandInstagram, IconBrandLinkedin } from '@tabler/icons-react'
 import {
   DndContext,
@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -126,6 +127,8 @@ function SortableButtonRow({
   onUpdateLink: (id: string, field: 'title' | 'url' | 'icon', value: string) => void
   deletingPdfId?: string | null
 }) {
+  const [isEditing, setIsEditing] = useState(false)
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: link.id,
   })
@@ -139,6 +142,7 @@ function SortableButtonRow({
   const { Icon } = config
   const isCustom = link.icon === 'link' || link.icon === 'website'
   const isBrochure = link.icon === 'brochure'
+  const displayUrl = link.url.replace(/^https?:\/\//i, '')
 
   return (
     <div
@@ -147,70 +151,99 @@ function SortableButtonRow({
       className={`rounded-xl border border-border/60 p-4 space-y-3 bg-background ${isDragging ? 'opacity-50' : ''}`}
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <button
             type="button"
-            className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
+            className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors shrink-0"
             {...attributes}
             {...listeners}
           >
             <GripVertical className="w-4 h-4" />
           </button>
-          <Icon className="w-4 h-4 text-muted-foreground" />
-          <p className="text-sm tracking-[0.15em] uppercase font-semibold">
+          <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
+          <p className="text-sm tracking-[0.15em] uppercase font-semibold truncate">
             {config.label || link.title || 'Otro'}
           </p>
           {link.isManaged && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
               <Lock className="w-3 h-3" />
               Datos personales
             </span>
           )}
         </div>
         {!link.isManaged && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onRemoveLink(link.id)}
-            disabled={linksStatus.state === 'saving' || deletingPdfId === link.id}
-          >
-            {deletingPdfId === link.id
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : 'Eliminar'}
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              type="button"
+              variant={isEditing ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setIsEditing((v) => !v)}
+              disabled={linksStatus.state === 'saving'}
+            >
+              {isEditing
+                ? <><Check className="w-3.5 h-3.5 mr-1" />Listo</>
+                : <><Pencil className="w-3.5 h-3.5 mr-1" />Editar</>}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onRemoveLink(link.id)}
+              disabled={linksStatus.state === 'saving' || deletingPdfId === link.id}
+            >
+              {deletingPdfId === link.id
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : 'Eliminar'}
+            </Button>
+          </div>
         )}
       </div>
 
       {!link.isManaged && (
         <div className="space-y-3">
-          {(isCustom || isBrochure) && (
-            <div className="space-y-2">
-              <Label>Nombre del botón</Label>
-              <Input
-                value={link.title}
-                onChange={(e) => onUpdateLink(link.id, 'title', e.target.value)}
-              />
-            </div>
-          )}
-          {!isBrochure && (
-            <div className="space-y-2">
-              <Label>URL de destino</Label>
-              <div className="flex rounded-md shadow-sm">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-muted-foreground text-sm font-medium">
-                  https://
-                </span>
-                <Input
-                  value={link.url.replace(/^https?:\/\//i, '')}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/^https?:\/\//i, '').replace(/\s+/g, '')
-                    onUpdateLink(link.id, 'url', val ? `https://${val}` : '')
-                  }}
-                  placeholder="tudominio.com/ruta"
-                  className="rounded-l-none"
-                />
-              </div>
-            </div>
+          {isEditing ? (
+            <>
+              {(isCustom || isBrochure) && (
+                <div className="space-y-2">
+                  <Label>Nombre del botón</Label>
+                  <Input
+                    value={link.title}
+                    onChange={(e) => onUpdateLink(link.id, 'title', e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              )}
+              {!isBrochure && (
+                <div className="space-y-2">
+                  <Label>URL de destino</Label>
+                  <div className="flex rounded-md shadow-sm">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-muted-foreground text-sm font-medium">
+                      https://
+                    </span>
+                    <Input
+                      value={displayUrl}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/^https?:\/\//i, '').replace(/\s+/g, '')
+                        onUpdateLink(link.id, 'url', val ? `https://${val}` : '')
+                      }}
+                      placeholder="tudominio.com/ruta"
+                      className="rounded-l-none"
+                    />
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {isBrochure && link.title && (
+                <p className="text-xs text-muted-foreground truncate pl-1">{link.title}</p>
+              )}
+              {!isBrochure && displayUrl && (
+                <p className="text-xs text-muted-foreground truncate pl-1">
+                  https://{displayUrl}
+                </p>
+              )}
+            </>
           )}
         </div>
       )}
@@ -313,6 +346,11 @@ function AddLinkModal({
             {step === 'url' && 'Configura el enlace'}
             {step === 'brochure' && 'Subir brochure'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {step === 'pick' && 'Elige el tipo de botón que quieres añadir a tu perfil.'}
+            {step === 'url' && 'Introduce la URL de destino para este botón.'}
+            {step === 'brochure' && 'Sube un archivo PDF para mostrar como brochure.'}
+          </DialogDescription>
         </DialogHeader>
 
         {step === 'pick' && (

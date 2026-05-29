@@ -8,6 +8,7 @@ import { FeaturesSection } from '@/components/landing/FeaturesSection'
 import { ImpactSection } from '@/components/landing/ImpactSection'
 import { CTASection } from '@/components/landing/CTASection'
 import { Footer } from '@/components/landing/Footer'
+import { WhatsAppBubble } from '@/components/landing/WhatsAppBubble'
 
 export default function Home() {
   return (
@@ -63,6 +64,7 @@ export default function Home() {
       <ImpactSection />
       <CTASection />
       <Footer />
+      <WhatsAppBubble />
     </div>
   )
 }

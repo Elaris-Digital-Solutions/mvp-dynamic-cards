@@ -6,6 +6,7 @@ interface VCardContact {
   phone?: string
   whatsapp?: string
   email?: string
+  profileUrl?: string
 }
 
 function escapeField(value: string): string {
@@ -24,7 +25,7 @@ function normalizePhone(raw: string): string {
 }
 
 export function generateVCard(contact: VCardContact): string {
-  const { firstName, lastName, title, company, phone, whatsapp, email } = contact
+  const { firstName, lastName, title, company, phone, whatsapp, email, profileUrl } = contact
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
 
   const normalizedPhone = phone ? normalizePhone(phone) : null
@@ -49,6 +50,7 @@ export function generateVCard(contact: VCardContact): string {
   }
 
   if (email) lines.push(`EMAIL:${escapeField(email)}`)
+  if (profileUrl) lines.push(`URL:${profileUrl}`)
 
   lines.push('END:VCARD')
   return lines.join('\r\n')
