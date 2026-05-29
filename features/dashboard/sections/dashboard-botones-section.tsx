@@ -228,6 +228,7 @@ function SortableButtonRow({
                       }}
                       placeholder="tudominio.com/ruta"
                       className="rounded-l-none"
+                      autoFocus={!isCustom}
                     />
                   </div>
                 </div>
