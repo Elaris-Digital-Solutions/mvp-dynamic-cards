@@ -74,9 +74,9 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
   const isLightTemplate = (template.textStyle as string) === 'dark'
   const visibleLinks = profile.links?.slice(0, 6) ?? []
 
-  const getLinkHref = (link: { icon: string; url: string }) =>
+  const getLinkHref = (link: { id: string; icon: string; url: string }) =>
     link.icon === 'brochure' && profile.username
-      ? `/api/pdf/${profile.username}`
+      ? `/api/pdf/${profile.username}/${link.id}`
       : link.url
 
   const handleLinkClick = (link: { id: string; title: string; url: string }) => {
@@ -262,7 +262,7 @@ export function LinktreeCard({ profile, showBackButton = false }: LinktreeCardPr
                 className="group flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors hover:bg-white/[0.04] animate-in slide-in-from-bottom-4 fade-in duration-500 fill-mode-both"
               >
                 <span className="opacity-85">{socialIcons[link.icon] || <Globe className="w-5 h-5" />}</span>
-                <span className="font-semibold text-base flex-1">{friendlyLabels[link.icon] ?? link.title}</span>
+                <span className="font-semibold text-base flex-1">{link.title || friendlyLabels[link.icon]}</span>
                 <ExternalLink className="w-4 h-4 opacity-70 group-hover:opacity-100" />
               </a>
             ))}

@@ -247,39 +247,34 @@ export async function uploadProfilePdf(
   const rawFile = formData.get('file')
   if (!(rawFile instanceof File)) return { error: 'No se recibió ningún archivo.' }
 
+  const rawLabel = formData.get('label')
+  const label = typeof rawLabel === 'string' && rawLabel.trim() ? rawLabel.trim().slice(0, 100) : 'Ver brochure'
+
   const parsed = pdfUploadSchema.safeParse({ file: rawFile })
   if (!parsed.success) return { error: parsed.error.issues[0].message }
 
   const { file } = parsed.data
   const serviceClient = createServiceClient()
 
-  // Verificar si ya existe botón brochure managed
-  const { data: existing } = await (serviceClient.from('action_buttons') as any)
-    .select('id')
-    .match({ profile_id: user.id, icon: 'brochure', is_managed: true })
-    .maybeSingle()
+  // Verificar que haya slot disponible
+  const { count } = await (serviceClient.from('action_buttons') as any)
+    .select('*', { count: 'exact', head: true })
+    .eq('profile_id', user.id)
 
-  // Si no existe, verificar que haya slot disponible
-  if (!existing) {
-    const { count } = await (serviceClient.from('action_buttons') as any)
-      .select('*', { count: 'exact', head: true })
-      .eq('profile_id', user.id)
-
-    if (count !== null && count >= 6) {
-      return { error: 'Has alcanzado el límite de 6 botones. Elimina uno para añadir tu brochure.' }
-    }
+  if (count !== null && count >= 6) {
+    return { error: 'Has alcanzado el límite de 6 botones. Elimina uno para añadir tu brochure.' }
   }
 
-  // Subir el archivo a Supabase Storage
+  // Subir el archivo a Supabase Storage con nombre único
   const arrayBuffer = await file.arrayBuffer()
   const fileBuffer = Buffer.from(arrayBuffer)
-  const storagePath = `${user.id}/brochure.pdf`
+  const storagePath = `${user.id}/brochure-${crypto.randomUUID()}.pdf`
 
   const { error: uploadError } = await serviceClient.storage
     .from('profile-pdfs')
     .upload(storagePath, fileBuffer, {
       contentType: 'application/pdf',
-      upsert: true,
+      upsert: false,
     })
 
   if (uploadError) return { error: 'Error al subir el archivo. Inténtalo de nuevo.' }
@@ -289,38 +284,25 @@ export async function uploadProfilePdf(
     .from('profile-pdfs')
     .getPublicUrl(storagePath)
 
-  // Upsert del botón managed
-  let buttonId: string
-  if (existing) {
-    await (serviceClient.from('action_buttons') as any)
-      .update({ url: publicUrl })
-      .match({ id: existing.id, profile_id: user.id })
-    buttonId = existing.id
-  } else {
-    const { data: maxBtn } = await (serviceClient.from('action_buttons') as any)
-      .select('sort_order')
-      .eq('profile_id', user.id)
-      .order('sort_order', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+  // Insertar nuevo botón
+  const { data: maxBtn } = await (serviceClient.from('action_buttons') as any)
+    .select('sort_order')
+    .eq('profile_id', user.id)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
-    buttonId = crypto.randomUUID()
-    await (serviceClient.from('action_buttons') as any).insert({
-      id: buttonId,
-      profile_id: user.id,
-      label: 'Ver brochure',
-      url: publicUrl,
-      icon: 'brochure',
-      is_managed: true,
-      sort_order: maxBtn ? maxBtn.sort_order + 1 : 0,
-      is_active: true,
-    })
-  }
-
-  // Guardar metadatos en profiles
-  await (serviceClient.from('profiles') as any)
-    .update({ pdf_filename: file.name, pdf_size: file.size, updated_at: new Date().toISOString() })
-    .eq('id', user.id)
+  const buttonId = crypto.randomUUID()
+  await (serviceClient.from('action_buttons') as any).insert({
+    id: buttonId,
+    profile_id: user.id,
+    label,
+    url: publicUrl,
+    icon: 'brochure',
+    is_managed: false,
+    sort_order: maxBtn ? maxBtn.sort_order + 1 : 0,
+    is_active: true,
+  })
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)
@@ -328,24 +310,32 @@ export async function uploadProfilePdf(
   return { success: true, filename: file.name, size: file.size, url: publicUrl, buttonId }
 }
 
-export async function deleteProfilePdf(): Promise<{ success: true } | { error: string }> {
+export async function deleteProfilePdf(buttonId: string): Promise<{ success: true } | { error: string }> {
   const { user, profile } = await requireActiveUser()
   const serviceClient = createServiceClient()
 
-  // Eliminar botón managed
-  await (serviceClient.from('action_buttons') as any)
-    .delete()
-    .match({ profile_id: user.id, icon: 'brochure', is_managed: true })
+  // Buscar el botón para obtener su URL (necesaria para derivar el path en Storage)
+  const { data: button } = await (serviceClient.from('action_buttons') as any)
+    .select('id, url')
+    .match({ id: buttonId, profile_id: user.id, icon: 'brochure' })
+    .maybeSingle()
 
-  // Eliminar archivo de Storage
-  await serviceClient.storage
-    .from('profile-pdfs')
-    .remove([`${user.id}/brochure.pdf`])
+  if (!button) return { error: 'Brochure no encontrado.' }
 
-  // Limpiar metadatos del perfil
-  await (serviceClient.from('profiles') as any)
-    .update({ pdf_filename: null, pdf_size: null, updated_at: new Date().toISOString() })
-    .eq('id', user.id)
+  // Parsear el path del storage desde la URL pública
+  // Formato: .../storage/v1/object/public/profile-pdfs/<path>
+  const storagePathMatch = (button.url as string).match(/\/profile-pdfs\/(.+)$/)
+  const storagePath = storagePathMatch ? storagePathMatch[1] : null
+
+  // Eliminar botón y archivo en paralelo
+  await Promise.all([
+    (serviceClient.from('action_buttons') as any)
+      .delete()
+      .match({ id: buttonId, profile_id: user.id }),
+    storagePath
+      ? serviceClient.storage.from('profile-pdfs').remove([storagePath])
+      : Promise.resolve(),
+  ])
 
   revalidatePath('/dashboard')
   revalidatePath(`/${profile.username}`)

@@ -23,6 +23,7 @@ export type EditableLink = {
   url: string
   icon: LinkIcon
   isManaged?: boolean
+  serverCreated?: boolean
 }
 
 export type UserProfile = {

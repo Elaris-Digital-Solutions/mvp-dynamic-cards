@@ -70,7 +70,7 @@ export function dbButtonToLinkItem(
     title: button.label,
     url: button.url,
     icon: button.icon,
-    isManaged: button.is_managed ?? false,
+    isManaged: button.icon === 'brochure' ? false : (button.is_managed ?? false),
   }
 }
 

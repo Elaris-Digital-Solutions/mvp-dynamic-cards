@@ -3,9 +3,9 @@ import { createPublicClient } from '@/lib/supabase/server'
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: Promise<{ username: string; buttonId: string }> }
 ) {
-  const { username } = await params
+  const { username, buttonId } = await params
   const supabase = createPublicClient()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,10 +21,10 @@ export async function GET(
   const { data: button } = await (supabase as any)
     .from('action_buttons')
     .select('url')
-    .match({ profile_id: profile.id, icon: 'brochure', is_managed: true })
+    .match({ id: buttonId, profile_id: profile.id, icon: 'brochure' })
     .maybeSingle()
 
-  if (!button) return new Response('No brochure found', { status: 404 })
+  if (!button) return new Response('Not found', { status: 404 })
 
   const pdfResponse = await fetch(button.url)
   if (!pdfResponse.ok) return new Response('Failed to fetch PDF', { status: 502 })

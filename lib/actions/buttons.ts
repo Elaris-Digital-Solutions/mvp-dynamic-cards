@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { requireActiveUser } from '@/lib/auth/requireActiveUser'
 import { revalidatePath } from 'next/cache'
 import { createButtonSchema, updateButtonSchema } from '@/lib/validation/schemas'
@@ -147,12 +147,12 @@ export async function saveButtonOrder(
   orderedIds: string[]
 ): Promise<{ success: true } | { error: string }> {
   const { user, profile } = await requireActiveUser()
-  const supabase = await createClient()
+  const serviceClient = createServiceClient()
 
   if (orderedIds.length === 0) return { success: true }
 
-  // Verify all IDs belong to this user
-  const { data: existing } = await (supabase as any)
+  // Verify all IDs belong to this user (includes managed buttons)
+  const { data: existing } = await (serviceClient as any)
     .from('action_buttons')
     .select('id')
     .eq('profile_id', user.id)
@@ -162,9 +162,10 @@ export async function saveButtonOrder(
     return { error: 'Uno o más botones no pertenecen a tu perfil.' }
   }
 
+  // Use serviceClient so managed buttons (e.g. WhatsApp) can also be reordered
   const results = await Promise.all(
     orderedIds.map((id, index) =>
-      (supabase as any)
+      (serviceClient as any)
         .from('action_buttons')
         .update({ sort_order: index })
         .match({ id, profile_id: user.id })

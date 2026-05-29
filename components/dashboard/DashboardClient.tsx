@@ -101,16 +101,8 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
   const previewUrls = useRef<{ profileImage?: string; bannerImage?: string }>({})
 
   // ── PDF state ──────────────────────────────────────────────────────────────
-  const [pdfMeta, setPdfMeta] = useState<{ filename: string; size: number; url: string } | null>(() => {
-    const brochureLink = (initialProfile.links ?? []).find(l => l.icon === 'brochure')
-    if (!brochureLink || !initialProfile.pdfFilename) return null
-    return {
-      filename: initialProfile.pdfFilename,
-      size: initialProfile.pdfSize ?? 0,
-      url: brochureLink.url,
-    }
-  })
   const [isPdfUploading, setIsPdfUploading] = useState(false)
+  const [deletingPdfId, setDeletingPdfId] = useState<string | null>(null)
 
   useEffect(() => {
     const urls = previewUrls.current
@@ -299,7 +291,7 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
 
     // Handle new and updated links (skip managed buttons — synced via profile)
     for (const link of links.filter((l: EditableLink) => !l.isManaged)) {
-      const isNew = !initialLinks.some((l: UILinkItem) => l.id === link.id)
+      const isNew = !initialLinks.some((l: UILinkItem) => l.id === link.id) && !link.serverCreated
       const formData = new FormData()
       formData.append('id', link.id)
       formData.append('label', link.title)
@@ -313,8 +305,8 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
           return
         }
       } else {
-        const orig = initialLinks.find((l: UILinkItem) => l.id === link.id)!
-        if (orig.title !== link.title || orig.url !== link.url || orig.icon !== link.icon) {
+        const orig = initialLinks.find((l: UILinkItem) => l.id === link.id)
+        if (!orig || orig.title !== link.title || orig.url !== link.url || orig.icon !== link.icon) {
           const res = await updateButton(link.id, formData)
           if (res && 'error' in res) {
             setLinksStatus({ state: 'error', message: res.error as string })
@@ -333,16 +325,17 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
       }
     }
 
-    // Persist final order (all buttons now exist in DB)
-    const nonManagedIds = links.filter(l => !l.isManaged).map(l => l.id)
-    if (nonManagedIds.length > 0) {
-      const res = await saveButtonOrder(nonManagedIds)
+    // Persist final order including managed buttons (e.g. WhatsApp) so relative positions are respected
+    const allIds = links.map(l => l.id)
+    if (allIds.length > 0) {
+      const res = await saveButtonOrder(allIds)
       if (res && 'error' in res) {
         setLinksStatus({ state: 'error', message: res.error as string })
         return
       }
     }
 
+    setLinks(prev => prev.map(l => ({ ...l, serverCreated: undefined })))
     setLinksStatus(INITIAL_STATUS)
     toast.success('Botones actualizados correctamente.')
   }
@@ -354,38 +347,36 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
     })
   }
 
-  const handlePdfUpload = async (file: File) => {
+  const handlePdfUpload = async (file: File, label: string) => {
     setIsPdfUploading(true)
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('label', label)
     const res = await uploadProfilePdf(formData)
     setIsPdfUploading(false)
     if ('error' in res) {
       toast.error(res.error)
       return
     }
-    setPdfMeta({ filename: res.filename, size: res.size, url: res.url })
-    setLinks(prev => {
-      const withoutBrochure = prev.filter((l: EditableLink) => l.icon !== 'brochure')
-      return [...withoutBrochure, {
-        id: res.buttonId,
-        title: 'Ver brochure',
-        url: res.url,
-        icon: 'brochure' as LinkIcon,
-        isManaged: true,
-      }]
-    })
+    setLinks(prev => [...prev, {
+      id: res.buttonId,
+      title: label || 'Ver brochure',
+      url: res.url,
+      icon: 'brochure' as LinkIcon,
+      serverCreated: true,
+    }])
     toast.success('Brochure publicado correctamente.')
   }
 
-  const handlePdfDelete = async () => {
-    const res = await deleteProfilePdf()
+  const handlePdfDelete = async (buttonId: string) => {
+    setDeletingPdfId(buttonId)
+    const res = await deleteProfilePdf(buttonId)
+    setDeletingPdfId(null)
     if ('error' in res) {
       toast.error(res.error)
       return
     }
-    setPdfMeta(null)
-    setLinks(prev => prev.filter((l: EditableLink) => l.icon !== 'brochure'))
+    setLinks(prev => prev.filter((l: EditableLink) => l.id !== buttonId))
     toast.success('Brochure eliminado.')
   }
 
@@ -448,11 +439,10 @@ export default function DashboardClient({ initialProfile, isAdmin, authEmail }: 
               onAddLink={addLink}
               onSaveLinks={saveLinks}
               onReorderLinks={handleReorderLinks}
-              pdfMeta={pdfMeta}
               isPdfUploading={isPdfUploading}
+              deletingPdfId={deletingPdfId}
               onPdfUpload={handlePdfUpload}
               onPdfDelete={handlePdfDelete}
-              username={username}
             />
           )}
 
