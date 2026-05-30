@@ -17,7 +17,7 @@ export function ResetForm() {
   const [error, setError] = useState('')
 
   const passwordsMatch = password === confirm
-  const passwordValid = password.length >= 12 &&
+  const passwordValid = password.length >= 8 &&
     /[a-z]/.test(password) && /[A-Z]/.test(password) &&
     /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
   const isDisabled = loading || !password || !confirm || !passwordsMatch || !passwordValid
