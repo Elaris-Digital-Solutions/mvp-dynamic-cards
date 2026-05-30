@@ -162,7 +162,7 @@ export async function requestPasswordResetAction(email: string, turnstileToken: 
 }
 
 function validatePasswordStrength(password: string): string | null {
-  if (password.length < 12)          return 'La contraseña debe tener al menos 12 caracteres.'
+  if (password.length < 8)           return 'La contraseña debe tener al menos 8 caracteres.'
   if (!/[a-z]/.test(password))       return 'Debe incluir al menos una letra minúscula.'
   if (!/[A-Z]/.test(password))       return 'Debe incluir al menos una letra mayúscula.'
   if (!/[0-9]/.test(password))        return 'Debe incluir al menos un número.'
